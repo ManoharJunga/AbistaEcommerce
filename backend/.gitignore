@@ -44,13 +44,13 @@ jspm_packages/
 .env.development
 .env.production
 
-# IDE files
+# IDE and editor settings
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Build and release
+# Build and release directories
 dist/
 build/
 
@@ -61,6 +61,3 @@ build/
 # OS-specific files
 .DS_Store
 Thumbs.db
-
-
-.env
