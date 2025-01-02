@@ -1,6 +1,7 @@
 // Import required modules
 const express = require('express');
 const dotenv = require('dotenv');
+const cors = require('cors'); // Import the CORS middleware
 const connectDB = require('./config/db');
 const errorMiddleware = require('./middlewares/errorMiddleware');
 
@@ -18,7 +19,6 @@ const otpRoutes = require('./routes/otpRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 
-
 // Initialize express app
 const app = express();
 
@@ -27,6 +27,12 @@ dotenv.config();
 
 // Middleware for parsing JSON
 app.use(express.json());
+
+// Enable CORS
+app.use(cors({
+    origin: 'http://localhost:5173', // Allow only your React frontend
+  }));
+  
 
 // Connect to MongoDB
 connectDB();
@@ -41,11 +47,9 @@ app.use('/api/notification', notificationRoutes);
 app.use('/api/recentlyviewed', recentlyViewedRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/rating', ratingRoutes);
-app.use('/api/otp', otpRoutes);  // OTP route for customer verification
+app.use('/api/otp', otpRoutes); // OTP route for customer verification
 app.use('/api/categories', categoryRoutes);
 app.use('/api/projects', projectRoutes);
-
-
 
 // Error Middleware (to handle errors globally)
 app.use(errorMiddleware);

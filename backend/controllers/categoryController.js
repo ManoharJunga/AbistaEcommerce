@@ -7,14 +7,10 @@ exports.uploadCategoryImage = upload.single('image');
 // Add a New Category
 exports.addCategory = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'Image is required!' });
-    }
-
     // Create a new category
     const category = new Category({
       name: req.body.name,
-      image: req.file.path // Save the uploaded image URL or path
+      image: req.file ? req.file.path : null // Save image path if uploaded, else null
     });
 
     await category.save();

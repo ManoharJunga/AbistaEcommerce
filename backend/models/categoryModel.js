@@ -10,7 +10,7 @@ const CategorySchema = new mongoose.Schema({
   },
   image: { 
     type: String, 
-    required: true // URL or path to the category image
+    required: false // URL or path to the category image
   },
 }, { timestamps: true }); // Adds createdAt and updatedAt timestamps
 
