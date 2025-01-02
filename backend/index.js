@@ -38,7 +38,7 @@ app.use('/api/order', orderRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/notification', notificationRoutes);
-app.use('/api', recentlyViewedRoutes);
+app.use('/api/recentlyviewed', recentlyViewedRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/rating', ratingRoutes);
 app.use('/api/otp', otpRoutes);  // OTP route for customer verification
