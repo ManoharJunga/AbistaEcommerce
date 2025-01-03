@@ -18,6 +18,8 @@ const ratingRoutes = require('./routes/ratingRoutes');
 const otpRoutes = require('./routes/otpRoutes');
 const categoryRoutes = require('./routes/categoryRoutes');
 const projectRoutes = require('./routes/projectRoutes');
+const costRoutes = require('./routes/costRoutes');
+const subcategoryRoutes = require('./routes/subCategoryRoutes');
 
 // Initialize express app
 const app = express();
@@ -49,8 +51,9 @@ app.use('/api/products', productRoutes);
 app.use('/api/rating', ratingRoutes);
 app.use('/api/otp', otpRoutes); // OTP route for customer verification
 app.use('/api/categories', categoryRoutes);
+app.use('api/subcategories', subcategoryRoutes);
 app.use('/api/projects', projectRoutes);
-
+app.use('/api', costRoutes);
 // Error Middleware (to handle errors globally)
 app.use(errorMiddleware);
 

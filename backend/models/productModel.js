@@ -10,6 +10,11 @@ const ProductSchema = new mongoose.Schema({
     ref: 'Category', 
     required: true 
   },  
+  subCategory: { // Add sub-category reference
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SubCategory',
+    required: false // Optional field
+  },
   sizes: [{
     height: { type: Number, required: true },
     width: { type: Number, required: true },
