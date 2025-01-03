@@ -51,7 +51,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/rating', ratingRoutes);
 app.use('/api/otp', otpRoutes); // OTP route for customer verification
 app.use('/api/categories', categoryRoutes);
-app.use('api/subcategories', subcategoryRoutes);
+app.use('/api/subcategories', subcategoryRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api', costRoutes);
 // Error Middleware (to handle errors globally)

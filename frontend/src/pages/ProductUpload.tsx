@@ -4,6 +4,7 @@ import axios from 'axios';
 const ProductUpload = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]); // State for subcategories
   const [products, setProducts] = useState([]);
   const [formData, setFormData] = useState({
     name: '',
@@ -11,6 +12,7 @@ const ProductUpload = () => {
     price: '',
     stock: '',
     category: '',
+    subcategory: '',
   });
 
   useEffect(() => {
@@ -38,17 +40,42 @@ const ProductUpload = () => {
     fetchProducts();
   }, []);
 
+  // Fetch subcategories based on selected category
+  const fetchSubcategories = async (categoryId: string) => {
+    if (!categoryId) {
+      setSubcategories([]);
+      return;
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/subcategories?category=${categoryId}`
+      );
+      setSubcategories(response.data);
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      setSubcategories([]);
+    }
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       setFiles(Array.from(event.target.files));
     }
   };
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = async (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = event.target;
+
     setFormData({
       ...formData,
-      [event.target.name]: event.target.value,
+      [name]: value,
     });
+
+    // Fetch subcategories when a category is selected
+    if (name === 'category') {
+      await fetchSubcategories(value);
+    }
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -61,6 +88,7 @@ const ProductUpload = () => {
     data.append('price', formData.price);
     data.append('stock', formData.stock);
     data.append('category', formData.category);
+    data.append('subcategory', formData.subcategory);
 
     files.forEach((file) => {
       data.append('images', file);
@@ -113,6 +141,8 @@ const ProductUpload = () => {
           onChange={handleInputChange}
           placeholder="Stock"
         />
+
+        {/* Category Dropdown */}
         <select
           name="category"
           value={formData.category}
@@ -125,6 +155,21 @@ const ProductUpload = () => {
             </option>
           ))}
         </select>
+
+        {/* Subcategory Dropdown */}
+        <select
+          name="subcategory"
+          value={formData.subcategory}
+          onChange={handleInputChange}
+        >
+          <option value="">Select Subcategory</option>
+          {subcategories.map((subcategory: any) => (
+            <option key={subcategory._id} value={subcategory._id}>
+              {subcategory.name}
+            </option>
+          ))}
+        </select>
+
         <input type="file" multiple onChange={handleFileChange} />
         <button type="submit">Upload Product</button>
       </form>
@@ -134,9 +179,15 @@ const ProductUpload = () => {
         {products.map((product: any) => (
           <li key={product._id}>
             {product.name} - {product.price} - {product.description} - {product.stock}
-            {product.images && product.images.map((image: string, index: number) => (
-              <img key={index} src={image} alt={product.name} style={{ width: '50px', height: '50px', marginLeft: '10px' }} />
-            ))}
+            {product.images &&
+              product.images.map((image: string, index: number) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={product.name}
+                  style={{ width: '50px', height: '50px', marginLeft: '10px' }}
+                />
+              ))}
           </li>
         ))}
       </ul>
