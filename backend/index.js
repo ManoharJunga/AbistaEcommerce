@@ -1,6 +1,7 @@
 // Import required modules
 const express = require('express');
 const dotenv = require('dotenv');
+
 const cors = require('cors'); // Import the CORS middleware
 const connectDB = require('./config/db');
 const errorMiddleware = require('./middlewares/errorMiddleware');
@@ -35,7 +36,6 @@ app.use(cors({
     origin: 'http://localhost:5173', // Allow only your React frontend
   }));
   
-
 // Connect to MongoDB
 connectDB();
 

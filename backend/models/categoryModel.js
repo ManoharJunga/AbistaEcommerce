@@ -11,7 +11,7 @@ const CategorySchema = new mongoose.Schema({
     maxlength: [50, 'Category name must be less than 50 characters'], // Maximum length validation
     match: [/^[a-zA-Z0-9\s]+$/, 'Category name can only contain alphanumeric characters and spaces'], // Regex validation
   },
-  image: { 
+  image: {
     type: String, 
     required: false, // URL or path to the category image
     validate: {
