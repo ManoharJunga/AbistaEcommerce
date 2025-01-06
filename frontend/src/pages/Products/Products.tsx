@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { BASE_API_URL } from '../../App';
 
 const ProductUpload = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -19,7 +20,7 @@ const ProductUpload = () => {
     // Fetch categories
     const fetchCategories = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/categories');
+        const response = await axios.get(`${BASE_API_URL}/categories`);
         setCategories(response.data);
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -29,7 +30,7 @@ const ProductUpload = () => {
     // Fetch products
     const fetchProducts = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/products/get');
+        const response = await axios.get(`${BASE_API_URL}/products/get`);
         setProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
@@ -48,9 +49,7 @@ const ProductUpload = () => {
     }
 
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/subcategories?category=${categoryId}`
-      );
+      const response = await axios.get(`${BASE_API_URL}/subcategories?category=${categoryId}`);
       setSubcategories(response.data);
     } catch (error) {
       console.error('Error fetching subcategories:', error);
@@ -95,7 +94,7 @@ const ProductUpload = () => {
     });
 
     try {
-      const response = await axios.post('http://localhost:8000/api/products/upload', data, {
+      const response = await axios.post(`${BASE_API_URL}/products/upload`, data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -103,7 +102,7 @@ const ProductUpload = () => {
       console.log('Product uploaded successfully:', response.data);
 
       // Refresh product list after upload
-      const updatedProducts = await axios.get('http://localhost:8000/api/products/get');
+      const updatedProducts = await axios.get(`${BASE_API_URL}/products/get`);
       setProducts(updatedProducts.data);
     } catch (error) {
       console.error('Error during upload:', error);
@@ -111,14 +110,15 @@ const ProductUpload = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
+    <div className="container mx-auto p-4">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 bg-white p-6 shadow-md rounded-lg">
         <input
           type="text"
           name="name"
           value={formData.name}
           onChange={handleInputChange}
           placeholder="Product Name"
+          className="border p-2 rounded"
         />
         <input
           type="text"
@@ -126,6 +126,7 @@ const ProductUpload = () => {
           value={formData.description}
           onChange={handleInputChange}
           placeholder="Description"
+          className="border p-2 rounded"
         />
         <input
           type="number"
@@ -133,6 +134,7 @@ const ProductUpload = () => {
           value={formData.price}
           onChange={handleInputChange}
           placeholder="Price"
+          className="border p-2 rounded"
         />
         <input
           type="number"
@@ -140,6 +142,7 @@ const ProductUpload = () => {
           value={formData.stock}
           onChange={handleInputChange}
           placeholder="Stock"
+          className="border p-2 rounded"
         />
 
         {/* Category Dropdown */}
@@ -147,6 +150,7 @@ const ProductUpload = () => {
           name="category"
           value={formData.category}
           onChange={handleInputChange}
+          className="border p-2 rounded"
         >
           <option value="">Select Category</option>
           {categories.map((category: any) => (
@@ -161,6 +165,7 @@ const ProductUpload = () => {
           name="subcategory"
           value={formData.subcategory}
           onChange={handleInputChange}
+          className="border p-2 rounded"
         >
           <option value="">Select Subcategory</option>
           {subcategories.map((subcategory: any) => (
@@ -170,24 +175,29 @@ const ProductUpload = () => {
           ))}
         </select>
 
-        <input type="file" multiple onChange={handleFileChange} />
-        <button type="submit">Upload Product</button>
+        <input type="file" multiple onChange={handleFileChange} className="border p-2 rounded" />
+        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Upload Product</button>
       </form>
 
-      <h2>Products List</h2>
-      <ul>
+      <h2 className="text-xl font-bold mt-6">Products List</h2>
+      <ul className="list-disc ml-6">
         {products.map((product: any) => (
-          <li key={product._id}>
-            {product.name} - {product.price} - {product.description} - {product.stock}
-            {product.images &&
-              product.images.map((image: string, index: number) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={product.name}
-                  style={{ width: '50px', height: '50px', marginLeft: '10px' }}
-                />
-              ))}
+          <li key={product._id} className="mb-4">
+            <div className="flex items-center space-x-4">
+              <span>{product.name}</span>
+              <span>${product.price}</span>
+              <span>{product.description}</span>
+              <span>{product.stock} in stock</span>
+              {product.images &&
+                product.images.map((image: string, index: number) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt={product.name}
+                    className="w-12 h-12 rounded border ml-2"
+                  />
+                ))}
+            </div>
           </li>
         ))}
       </ul>

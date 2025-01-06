@@ -10,6 +10,7 @@ import Subcategories from "./pages/Products/Subcategories";
 import ProductRating from "./pages/Products/ProductRating";
 import Settings from "./pages/Settings";
 
+export const BASE_API_URL = 'http://localhost:8000/api';
 const App = () => {
   return (
     <Router>
