@@ -50,6 +50,9 @@ const Sidebar = () => {
             {productsOpen && isOpen && (
               <ul className="ml-8">
                 <li className="hover:bg-gray-700">
+                  <Link to="/products">Product</Link>
+                </li>
+                <li className="hover:bg-gray-700">
                   <Link to="/products/categories">Categories</Link>
                 </li>
                 <li className="hover:bg-gray-700">
@@ -58,6 +61,7 @@ const Sidebar = () => {
                 <li className="hover:bg-gray-700">
                   <Link to="/products/ratings">Product Ratings</Link>
                 </li>
+                
               </ul>
             )}
           </li>
