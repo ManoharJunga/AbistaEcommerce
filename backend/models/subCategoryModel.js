@@ -1,23 +1,27 @@
 const mongoose = require('mongoose');
 
-// Define SubCategory Schema
-const SubCategorySchema = new mongoose.Schema({
-  name: { 
-    type: String, 
-    required: true, // SubCategory name is required
-    trim: true, 
-    unique: true // Ensures no duplicate subcategory names
+// Define the SubCategory Schema
+const subCategorySchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, 'Name is required'], // Validation for name
+      trim: true,
+    },
+    image: {
+      type: String, // URL of the uploaded image (Cloudinary URL)
+      required: [true, 'Image is required'],
+    },
+    category: {
+      type: mongoose.Schema.Types.ObjectId, // Reference to Category model
+      ref: 'Category', // Relational mapping to the Category model
+      required: [true, 'Category is required'],
+    },
   },
-  image: { 
-    type: String, 
-    required: false // Image is optional
-  },
-  category: { 
-    type: mongoose.Schema.Types.ObjectId, // Reference to Category schema
-    ref: 'Category', 
-    required: true // SubCategory must belong to a Category
-  },
-}, { timestamps: true }); // Adds createdAt and updatedAt timestamps
+  {
+    timestamps: true, // Automatically manage createdAt and updatedAt timestamps
+  }
+);
 
-// Export the model
-module.exports = mongoose.model('SubCategory', SubCategorySchema);
+// Create and export the SubCategory model
+module.exports = mongoose.model('SubCategory', subCategorySchema);
