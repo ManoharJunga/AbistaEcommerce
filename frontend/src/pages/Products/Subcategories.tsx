@@ -1,62 +1,33 @@
 import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Modal,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Select,
-  MenuItem,
-  InputLabel,
-  FormControl,
-  CircularProgress,
-} from "@mui/material";
-import { Add, Edit, Delete } from "@mui/icons-material";
 import axios from "axios";
-import { BASE_API_URL } from "../../App"; // Base API URL
+import { BASE_API_URL } from "../../App"; // Ensure this is the correct import path
+import { Button, TextField, Select, MenuItem, CircularProgress, Typography, InputLabel, FormControl, FormHelperText } from "@mui/material";
+
+interface SubCategory {
+  _id: string;
+  name: string;
+  image: string;
+  category: {
+    name: string;
+  };
+}
 
 interface Category {
   _id: string;
   name: string;
 }
 
-interface SubCategory {
-  _id: string;
-  name: string;
-  category: Category;
-  image: string;
-}
-
-const Subcategories = () => {
+const Subcategories: React.FC = () => {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState<{
-    name: string;
-    image: File | null;
-    category: string;
-    imagePreview?: string | null;
-  }>({
+  const [newSubCategory, setNewSubCategory] = useState({
     name: "",
-    image: null,
     category: "",
-    imagePreview: null,
+    image: null as File | null,
   });
-  const [editMode, setEditMode] = useState(false);
-  const [selectedId, setSelectedId] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchCategories();
-    fetchSubCategories();
-  }, []);
-
+  // Fetch all categories
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${BASE_API_URL}/categories`);
@@ -66,205 +37,136 @@ const Subcategories = () => {
     }
   };
 
+  // Fetch all subcategories
   const fetchSubCategories = async () => {
-    setLoading(true);
     try {
       const response = await axios.get(`${BASE_API_URL}/subcategories`);
       setSubCategories(response.data);
     } catch (error) {
       console.error("Error fetching subcategories", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: string }>) => {
-    if (e.target.name === "image") {
-      const file = e.target.files ? e.target.files[0] : null;
-      if (file) {
-        setFormData({ ...formData, image: file, imagePreview: URL.createObjectURL(file) });
-      }
+  // Handle image file change
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files) {
+      setNewSubCategory({ ...newSubCategory, image: event.target.files[0] });
+    }
+  };
+
+  // Handle form submission for creating a new subcategory
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault(); // Prevent default form submission behavior
+    const formData = new FormData();
+    
+    // Append form data
+    formData.append('name', newSubCategory.name);
+    formData.append('category', newSubCategory.category);
+    
+    if (newSubCategory.image) {
+      console.log(newSubCategory.image);  // Log the file object for debugging
+      formData.append('image', newSubCategory.image);
     } else {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+      console.error('Image is required');
+      return;
     }
-  };
-
-  const handleOpen = (id = "") => {
-    if (id) {
-      setEditMode(true);
-      const subCategory = subCategories.find((sub) => sub._id === id);
-      if (!subCategory) {
-        console.error("Subcategory not found");
-        return;
-      }
-      setFormData({
-        name: subCategory.name,
-        image: null,
-        category: subCategory.category._id,
-        imagePreview: subCategory.image,
+  
+    try {
+      const response = await axios.post('http://localhost:8000/api/subcategories', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
-      setSelectedId(id);
-    } else {
-      setEditMode(false);
-      setFormData({ name: "", image: null, category: "", imagePreview: null });
-    }
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setFormData({ name: "", image: null, category: "", imagePreview: null });
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const data = new FormData();
-      data.append("name", formData.name);
-      if (formData.image) data.append("image", formData.image); // Ensure the image file is appended correctly
-      data.append("category", formData.category);
-
-      // Log FormData to check what is being sent
-      console.log("FormData being sent:", data);
-
-      if (editMode) {
-        await axios.put(`${BASE_API_URL}/subcategories/${selectedId}`, data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      } else {
-        await axios.post(`${BASE_API_URL}/subcategories`, data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      }
-
-      fetchSubCategories();
-      handleClose();
+      console.log('Subcategory created:', response.data);
     } catch (error) {
-      console.error("Error saving subcategory", error);
-    } finally {
-      setLoading(false);
+      console.error('Error creating subcategory:', error);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await axios.delete(`${BASE_API_URL}/subcategories/${id}`);
-      setSubCategories(subCategories.filter((sub) => sub._id !== id));
-    } catch (error) {
-      console.error("Error deleting subcategory", error);
-    }
-  };
+  useEffect(() => {
+    fetchCategories();
+    fetchSubCategories();
+  }, []);
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Product Subcategories</h1>
-      <p className="mb-6">Manage your product subcategories here.</p>
+    <div className="p-8 bg-white rounded-lg shadow-md">
+      <Typography variant="h4" className="text-center mb-6">SubCategories</Typography>
 
-      <Button
-        variant="contained"
-        color="primary"
-        className="mb-4"
-        onClick={() => handleOpen()}
-        startIcon={<Add />}
-      >
-        Add Subcategory
-      </Button>
-
-      {loading ? (
-        <div className="flex justify-center mt-6">
-          <CircularProgress />
+      <Typography variant="h5" className="mb-4">Create a New SubCategory</Typography>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-col">
+          <TextField
+            label="SubCategory Name"
+            value={newSubCategory.name}
+            onChange={(e) =>
+              setNewSubCategory({ ...newSubCategory, name: e.target.value })
+            }
+            fullWidth
+            required
+          />
         </div>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Category</TableCell>
-                <TableCell>Image</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {subCategories.map((sub) => (
-                <TableRow key={sub._id}>
-                  <TableCell>{sub.name}</TableCell>
-                  <TableCell>{sub.category ? sub.category.name : "No Category"}</TableCell>
-                  <TableCell>
-                    {sub.image && <img src={sub.image} alt={sub.name} width="50" />}
-                  </TableCell>
-                  <TableCell>
-                    <IconButton color="primary" onClick={() => handleOpen(sub._id)}>
-                      <Edit />
-                    </IconButton>
-                    <IconButton color="secondary" onClick={() => handleDelete(sub._id)}>
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
+
+        <div className="flex flex-col">
+          <FormControl fullWidth required>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={newSubCategory.category}
+              onChange={(e) =>
+                setNewSubCategory({ ...newSubCategory, category: e.target.value })
+              }
+            >
+              <MenuItem value="">Select Category</MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category._id} value={category._id}>
+                  {category.name}
+                </MenuItem>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-
-      <Modal open={open} onClose={handleClose}>
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">{editMode ? "Edit Subcategory" : "Add Subcategory"}</h2>
-            <form onSubmit={handleSubmit}>
-              <TextField
-                label="Name"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Category</InputLabel>
-                <Select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  required
-                >
-                  {categories.map((category) => (
-                    <MenuItem key={category._id} value={category._id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <TextField
-                label="Image"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                name="image"
-                type="file"
-                onChange={handleChange}
-              />
-              {formData.imagePreview && (
-                <div className="mt-2">
-                  <img src={formData.imagePreview} alt="Preview" width="100" />
-                </div>
-              )}
-              <Button type="submit" variant="contained" color="primary" fullWidth className="mt-4">
-                {editMode ? "Update" : "Add"} Subcategory
-              </Button>
-            </form>
-          </div>
+            </Select>
+            <FormHelperText>Choose a category for the subcategory</FormHelperText>
+          </FormControl>
         </div>
-      </Modal>
+
+        <div className="flex flex-col">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            required
+            className="border p-2"
+          />
+        </div>
+
+        <div className="text-center">
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            className="w-full"
+          >
+            {loading ? <CircularProgress size={24} /> : "Create SubCategory"}
+          </Button>
+        </div>
+      </form>
+
+      <Typography variant="h5" className="mt-8 mb-4">All SubCategories</Typography>
+      {subCategories.length > 0 ? (
+        <ul className="space-y-4">
+          {subCategories.map((subCategory) => (
+            <li key={subCategory._id} className="border p-4 rounded-lg flex flex-col items-center">
+              <Typography variant="h6">{subCategory.name}</Typography>
+              <Typography variant="body1">Category: {subCategory.category.name}</Typography>
+              <img
+                src={subCategory.image}
+                alt={subCategory.name}
+                className="mt-2 w-24 h-24 object-cover rounded-md"
+              />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <Typography>No subcategories found.</Typography>
+      )}
     </div>
   );
 };
