@@ -9,6 +9,8 @@ import Categories from "./pages/Products/Categories";
 import Subcategories from "./pages/Products/Subcategories";
 import ProductRating from "./pages/Products/ProductRating";
 import Settings from "./pages/Settings";
+import ProjectsPage from "./pages/Projects/ProjectsPage";
+import AddProjectPage from "./pages/Projects/AddProjectPage";
 
 export const BASE_API_URL = 'http://localhost:8000/api';
 const App = () => {
@@ -25,6 +27,8 @@ const App = () => {
             <Route path="/products/subcategories" element={<Subcategories />} />
             <Route path="/products/ratings" element={<ProductRating />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/projects" element={<ProjectsPage />} />
+            <Route path="/projects/add" element={<AddProjectPage />} />
           </Routes>
         </div>
       </div>

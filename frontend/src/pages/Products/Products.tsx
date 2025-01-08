@@ -6,7 +6,7 @@ const ProductUpload = () => {
   const [files, setFiles] = useState<File[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [subcategories, setSubcategories] = useState<any[]>([]);
-  const [products, setProducts] = useState<any[]>([]); // Make sure the initial state is an array
+  const [products, setProducts] = useState<any[]>([]); 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -17,7 +17,6 @@ const ProductUpload = () => {
   });
 
   useEffect(() => {
-    // Fetch categories and products
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${BASE_API_URL}/categories`);
@@ -30,8 +29,6 @@ const ProductUpload = () => {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${BASE_API_URL}/products/get`);
-        
-        // Ensure the products field is an array and set it to state
         if (Array.isArray(response.data.products)) {
           setProducts(response.data.products);
         } else {
@@ -46,7 +43,6 @@ const ProductUpload = () => {
     fetchProducts();
   }, []);
 
-  // Fetch subcategories based on selected category
   const fetchSubcategories = async (categoryId: string) => {
     if (!categoryId) {
       setSubcategories([]);
@@ -76,7 +72,6 @@ const ProductUpload = () => {
       [name]: value,
     });
 
-    // Fetch subcategories when a category is selected
     if (name === 'category') {
       await fetchSubcategories(value);
     }
@@ -85,7 +80,6 @@ const ProductUpload = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    // Prepare form data for submission
     const data = new FormData();
     data.append('name', formData.name);
     data.append('description', formData.description);
@@ -106,7 +100,6 @@ const ProductUpload = () => {
       });
       console.log('Product uploaded successfully:', response.data);
 
-      // Refresh product list after upload
       const updatedProducts = await axios.get(`${BASE_API_URL}/products/get`);
       if (Array.isArray(updatedProducts.data)) {
         setProducts(updatedProducts.data);
@@ -119,99 +112,111 @@ const ProductUpload = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 bg-white p-6 shadow-md rounded-lg">
-        <input
-          type="text"
-          name="name"
-          value={formData.name}
-          onChange={handleInputChange}
-          placeholder="Product Name"
-          className="border p-2 rounded"
-        />
-        <input
-          type="text"
-          name="description"
-          value={formData.description}
-          onChange={handleInputChange}
-          placeholder="Description"
-          className="border p-2 rounded"
-        />
-        <input
-          type="number"
-          name="price"
-          value={formData.price}
-          onChange={handleInputChange}
-          placeholder="Price"
-          className="border p-2 rounded"
-        />
-        <input
-          type="number"
-          name="stock"
-          value={formData.stock}
-          onChange={handleInputChange}
-          placeholder="Stock"
-          className="border p-2 rounded"
-        />
+    <div className="container mt-4">
+      <form onSubmit={handleSubmit} className="bg-white p-3 shadow-sm rounded">
+        <div className="mb-3">
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="Product Name"
+            className="form-control form-control-sm"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="text"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+            placeholder="Description"
+            className="form-control form-control-sm"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="number"
+            name="price"
+            value={formData.price}
+            onChange={handleInputChange}
+            placeholder="Price"
+            className="form-control form-control-sm"
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="number"
+            name="stock"
+            value={formData.stock}
+            onChange={handleInputChange}
+            placeholder="Stock"
+            className="form-control form-control-sm"
+          />
+        </div>
 
-        {/* Category Dropdown */}
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleInputChange}
-          className="border p-2 rounded"
-        >
-          <option value="">Select Category</option>
-          {categories.map((category: any) => (
-            <option key={category._id} value={category._id}>
-              {category.name}
-            </option>
-          ))}
-        </select>
+        <div className="mb-3">
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleInputChange}
+            className="form-select form-select-sm"
+          >
+            <option value="">Select Category</option>
+            {categories.map((category: any) => (
+              <option key={category._id} value={category._id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        {/* Subcategory Dropdown */}
-        <select
-          name="subcategory"
-          value={formData.subcategory}
-          onChange={handleInputChange}
-          className="border p-2 rounded"
-        >
-          <option value="">Select Subcategory</option>
-          {subcategories.map((subcategory: any) => (
-            <option key={subcategory._id} value={subcategory._id}>
-              {subcategory.name}
-            </option>
-          ))}
-        </select>
+        <div className="mb-3">
+          <select
+            name="subcategory"
+            value={formData.subcategory}
+            onChange={handleInputChange}
+            className="form-select form-select-sm"
+          >
+            <option value="">Select Subcategory</option>
+            {subcategories.map((subcategory: any) => (
+              <option key={subcategory._id} value={subcategory._id}>
+                {subcategory.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <input type="file" multiple onChange={handleFileChange} className="border p-2 rounded" />
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded">Upload Product</button>
+        <div className="mb-3">
+          <input type="file" multiple onChange={handleFileChange} className="form-control form-control-sm" />
+        </div>
+        
+        <button type="submit" className="btn btn-primary btn-sm w-100">Upload Product</button>
       </form>
 
-      <h2 className="text-xl font-bold mt-6">Products List</h2>
-      <ul className="list-disc ml-6">
+      <h2 className="mt-4">Products List</h2>
+      <ul className="list-group">
         {products.length > 0 ? (
           products.map((product: any) => (
-            <li key={product._id} className="mb-4">
-              <div className="flex items-center space-x-4">
-                <span>{product.name}</span>
-                <span>${product.price}</span>
-                <span>{product.description}</span>
-                <span>{product.stock} in stock</span>
-                {product.images &&
-                  product.images.map((image: string, index: number) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={product.name}
-                      className="w-12 h-12 rounded border ml-2"
-                    />
-                  ))}
-              </div>
+            <li key={product._id} className="list-group-item d-flex justify-content-between align-items-center">
+              <span>{product.name}</span>
+              <span>${product.price}</span>
+              <span>{product.description}</span>
+              <span>{product.stock} in stock</span>
+              {product.images &&
+                product.images.map((image: string, index: number) => (
+                  <img
+                    key={index}
+                    src={image}
+                    alt={product.name}
+                    className="img-thumbnail"
+                    style={{ width: '50px', height: '50px' }}
+                  />
+                ))}
             </li>
           ))
         ) : (
-          <p>No products available.</p>
+          <p className="list-group-item">No products available.</p>
         )}
       </ul>
     </div>

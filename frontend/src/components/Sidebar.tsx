@@ -1,74 +1,105 @@
-// src/components/Sidebar.tsx
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Dashboard as DashboardIcon,
   People as PeopleIcon,
   ShoppingCart as ShoppingCartIcon,
+  Folder as FolderIcon,
   Settings as SettingsIcon,
   ExpandLess,
   ExpandMore,
 } from "@mui/icons-material";
+import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [productsOpen, setProductsOpen] = useState(false);
+  const [projectsOpen, setProjectsOpen] = useState(false);
 
   return (
-    <div className={`bg-gray-800 text-white h-screen ${isOpen ? "w-64" : "w-16"} transition-all duration-300`}>
+    <div
+      className={`bg-dark text-white vh-100 p-3 ${isOpen ? "w-25" : "w-10"} transition-all duration-300`}
+      style={{ width: isOpen ? "250px" : "70px" }}
+    >
       <button
-        className="text-white p-3 focus:outline-none"
+        className="btn btn-light mb-4"
         onClick={() => setIsOpen(!isOpen)}
       >
         {isOpen ? "❮" : "❯"}
       </button>
       <nav className="mt-4">
-        <ul>
-          <li className="hover:bg-gray-700">
-            <Link to="/" className="flex items-center px-4 py-2">
+        <ul className="nav flex-column">
+          <li className="nav-item mb-2">
+            <Link to="/" className="nav-link text-white d-flex align-items-center">
               <DashboardIcon />
-              {isOpen && <span className="ml-3">Dashboard</span>}
+              {isOpen && <span className="ms-3">Dashboard</span>}
             </Link>
           </li>
-          <li className="hover:bg-gray-700">
-            <Link to="/customers" className="flex items-center px-4 py-2">
+          <li className="nav-item mb-2">
+            <Link to="/customers" className="nav-link text-white d-flex align-items-center">
               <PeopleIcon />
-              {isOpen && <span className="ml-3">Customers</span>}
+              {isOpen && <span className="ms-3">Customers</span>}
             </Link>
           </li>
-          <li className="hover:bg-gray-700">
+
+          {/* Products Dropdown */}
+          <li className="nav-item mb-2">
             <button
-              className="flex items-center justify-between px-4 py-2 w-full"
+              className="nav-link text-white d-flex justify-content-between align-items-center"
               onClick={() => setProductsOpen(!productsOpen)}
             >
-              <div className="flex items-center">
+              <div className="d-flex align-items-center">
                 <ShoppingCartIcon />
-                {isOpen && <span className="ml-3">Products</span>}
+                {isOpen && <span className="ms-3">Products</span>}
               </div>
               {isOpen && (productsOpen ? <ExpandLess /> : <ExpandMore />)}
             </button>
             {productsOpen && isOpen && (
-              <ul className="ml-8">
-                <li className="hover:bg-gray-700">
-                  <Link to="/products">Product</Link>
+              <ul className="ms-3 list-unstyled">
+                <li>
+                  <Link to="/products" className="nav-link text-white">Product</Link>
                 </li>
-                <li className="hover:bg-gray-700">
-                  <Link to="/products/categories">Categories</Link>
+                <li>
+                  <Link to="/products/categories" className="nav-link text-white">Categories</Link>
                 </li>
-                <li className="hover:bg-gray-700">
-                  <Link to="/products/subcategories">Subcategories</Link>
+                <li>
+                  <Link to="/products/subcategories" className="nav-link text-white">Subcategories</Link>
                 </li>
-                <li className="hover:bg-gray-700">
-                  <Link to="/products/ratings">Product Ratings</Link>
+                <li>
+                  <Link to="/products/ratings" className="nav-link text-white">Product Ratings</Link>
                 </li>
-                
               </ul>
             )}
           </li>
-          <li className="hover:bg-gray-700">
-            <Link to="/settings" className="flex items-center px-4 py-2">
+
+          {/* Projects Dropdown */}
+          <li className="nav-item mb-2">
+            <button
+              className="nav-link text-white d-flex justify-content-between align-items-center"
+              onClick={() => setProjectsOpen(!projectsOpen)}
+            >
+              <div className="d-flex align-items-center">
+                <FolderIcon />
+                {isOpen && <span className="ms-3">Projects</span>}
+              </div>
+              {isOpen && (projectsOpen ? <ExpandLess /> : <ExpandMore />)}
+            </button>
+            {projectsOpen && isOpen && (
+              <ul className="ms-3 list-unstyled">
+                <li>
+                  <Link to="/projects" className="nav-link text-white">All Projects</Link>
+                </li>
+                <li>
+                  <Link to="/projects/add" className="nav-link text-white">Add Project</Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          <li className="nav-item mb-2">
+            <Link to="/settings" className="nav-link text-white d-flex align-items-center">
               <SettingsIcon />
-              {isOpen && <span className="ml-3">Settings</span>}
+              {isOpen && <span className="ms-3">Settings</span>}
             </Link>
           </li>
         </ul>
