@@ -1,24 +1,37 @@
 const Category = require('../models/categoryModel'); // Import Category Model
-const upload = require('../config/multer'); // Multer for image upload
+const upload = require('../config/multer'); // Correct import for multer config
 
-// Middleware for image upload
-exports.uploadCategoryImage = upload.single('image');
+// Upload a single category image
+exports.uploadCategoryImage = upload.uploadCategoryImage.single('image');
 
-// Add a New Category
+// Add Category (Example of your category creation logic)
 exports.addCategory = async (req, res) => {
   try {
-    // Create a new category
-    const category = new Category({
-      name: req.body.name,
-      image: req.file ? req.file.path : null // Save image path if uploaded, else null
-    });
+    // Check if the image is uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image uploaded!' });
+    }
 
+    // Process the category data (Assuming you have other form data for the category)
+    const categoryData = {
+      name: req.body.name,
+      image: req.file.path,  // Cloudinary URL for the uploaded image
+    };
+
+    // You can add more fields as required
+    const category = new Category(categoryData);
     await category.save();
-    res.status(201).json(category); // Return the created category
+
+    res.status(201).json({
+      message: 'Category added successfully!',
+      category,
+    });
   } catch (err) {
-    res.status(400).json({ message: err.message }); // Handle errors
+    console.error(err);
+    res.status(400).json({ message: err.message });
   }
 };
+
 
 // Get All Categories
 exports.getCategories = async (req, res) => {

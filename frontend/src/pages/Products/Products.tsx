@@ -4,9 +4,9 @@ import { BASE_API_URL } from '../../App';
 
 const ProductUpload = () => {
   const [files, setFiles] = useState<File[]>([]);
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]); // State for subcategories
-  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
+  const [products, setProducts] = useState<any[]>([]); // Make sure the initial state is an array
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -17,7 +17,7 @@ const ProductUpload = () => {
   });
 
   useEffect(() => {
-    // Fetch categories
+    // Fetch categories and products
     const fetchCategories = async () => {
       try {
         const response = await axios.get(`${BASE_API_URL}/categories`);
@@ -27,15 +27,20 @@ const ProductUpload = () => {
       }
     };
 
-    // Fetch products
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${BASE_API_URL}/products/get`);
-        setProducts(response.data);
+        
+        // Ensure the products field is an array and set it to state
+        if (Array.isArray(response.data.products)) {
+          setProducts(response.data.products);
+        } else {
+          console.error('Products data is not an array:', response.data);
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
       }
-    };
+    };    
 
     fetchCategories();
     fetchProducts();
@@ -103,7 +108,11 @@ const ProductUpload = () => {
 
       // Refresh product list after upload
       const updatedProducts = await axios.get(`${BASE_API_URL}/products/get`);
-      setProducts(updatedProducts.data);
+      if (Array.isArray(updatedProducts.data)) {
+        setProducts(updatedProducts.data);
+      } else {
+        console.error('Updated products data is not an array:', updatedProducts.data);
+      }
     } catch (error) {
       console.error('Error during upload:', error);
     }
@@ -181,25 +190,29 @@ const ProductUpload = () => {
 
       <h2 className="text-xl font-bold mt-6">Products List</h2>
       <ul className="list-disc ml-6">
-        {products.map((product: any) => (
-          <li key={product._id} className="mb-4">
-            <div className="flex items-center space-x-4">
-              <span>{product.name}</span>
-              <span>${product.price}</span>
-              <span>{product.description}</span>
-              <span>{product.stock} in stock</span>
-              {product.images &&
-                product.images.map((image: string, index: number) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={product.name}
-                    className="w-12 h-12 rounded border ml-2"
-                  />
-                ))}
-            </div>
-          </li>
-        ))}
+        {products.length > 0 ? (
+          products.map((product: any) => (
+            <li key={product._id} className="mb-4">
+              <div className="flex items-center space-x-4">
+                <span>{product.name}</span>
+                <span>${product.price}</span>
+                <span>{product.description}</span>
+                <span>{product.stock} in stock</span>
+                {product.images &&
+                  product.images.map((image: string, index: number) => (
+                    <img
+                      key={index}
+                      src={image}
+                      alt={product.name}
+                      className="w-12 h-12 rounded border ml-2"
+                    />
+                  ))}
+              </div>
+            </li>
+          ))
+        ) : (
+          <p>No products available.</p>
+        )}
       </ul>
     </div>
   );

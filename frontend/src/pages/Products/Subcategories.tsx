@@ -21,13 +21,35 @@ import { Add, Edit, Delete } from "@mui/icons-material";
 import axios from "axios";
 import { BASE_API_URL } from "../../App"; // Base API URL
 
+interface Category {
+  _id: string;
+  name: string;
+}
+
+interface SubCategory {
+  _id: string;
+  name: string;
+  category: Category;
+  image: string;
+}
+
 const Subcategories = () => {
-  const [subCategories, setSubCategories] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: "", image: null, category: "" });
+  const [formData, setFormData] = useState<{
+    name: string;
+    image: File | null;
+    category: string;
+    imagePreview?: string | null;
+  }>({
+    name: "",
+    image: null,
+    category: "",
+    imagePreview: null,
+  });
   const [editMode, setEditMode] = useState(false);
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -56,9 +78,12 @@ const Subcategories = () => {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | { name?: string; value: string }>) => {
     if (e.target.name === "image") {
-      setFormData({ ...formData, image: e.target.files[0] });
+      const file = e.target.files ? e.target.files[0] : null;
+      if (file) {
+        setFormData({ ...formData, image: file, imagePreview: URL.createObjectURL(file) });
+      }
     } else {
       setFormData({ ...formData, [e.target.name]: e.target.value });
     }
@@ -68,6 +93,10 @@ const Subcategories = () => {
     if (id) {
       setEditMode(true);
       const subCategory = subCategories.find((sub) => sub._id === id);
+      if (!subCategory) {
+        console.error("Subcategory not found");
+        return;
+      }
       setFormData({
         name: subCategory.name,
         image: null,
@@ -87,20 +116,31 @@ const Subcategories = () => {
     setFormData({ name: "", image: null, category: "", imagePreview: null });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const data = new FormData();
       data.append("name", formData.name);
-      if (formData.image) data.append("image", formData.image);
+      if (formData.image) data.append("image", formData.image); // Ensure the image file is appended correctly
       data.append("category", formData.category);
 
+      // Log FormData to check what is being sent
+      console.log("FormData being sent:", data);
+
       if (editMode) {
-        await axios.put(`${BASE_API_URL}/subcategories/${selectedId}`, data);
+        await axios.put(`${BASE_API_URL}/subcategories/${selectedId}`, data, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       } else {
-        await axios.post(`${BASE_API_URL}/subcategories`, data);
+        await axios.post(`${BASE_API_URL}/subcategories`, data, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       }
 
       fetchSubCategories();
@@ -112,7 +152,7 @@ const Subcategories = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       await axios.delete(`${BASE_API_URL}/subcategories/${id}`);
       setSubCategories(subCategories.filter((sub) => sub._id !== id));
@@ -183,28 +223,43 @@ const Subcategories = () => {
                 label="Name"
                 variant="outlined"
                 fullWidth
-                required
+                margin="normal"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                className="mb-4"
+                required
               />
-              <FormControl fullWidth className="mb-4">
+              <FormControl fullWidth margin="normal">
                 <InputLabel>Category</InputLabel>
-                <Select name="category" value={formData.category} onChange={handleChange} required>
-                  {categories.map((cat) => (
-                    <MenuItem key={cat._id} value={cat._id}>
-                      {cat.name}
+                <Select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category._id} value={category._id}>
+                      {category.name}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
+              <TextField
+                label="Image"
+                variant="outlined"
+                fullWidth
+                margin="normal"
+                name="image"
+                type="file"
+                onChange={handleChange}
+              />
               {formData.imagePreview && (
-                <img src={formData.imagePreview} alt="Preview" width="50" className="mb-4" />
+                <div className="mt-2">
+                  <img src={formData.imagePreview} alt="Preview" width="100" />
+                </div>
               )}
-              <input type="file" name="image" onChange={handleChange} className="mb-4" />
-              <Button type="submit" variant="contained" color="primary" className="w-full">
-                {loading ? <CircularProgress size={24} /> : editMode ? "Update" : "Add"}
+              <Button type="submit" variant="contained" color="primary" fullWidth className="mt-4">
+                {editMode ? "Update" : "Add"} Subcategory
               </Button>
             </form>
           </div>

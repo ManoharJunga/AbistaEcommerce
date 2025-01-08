@@ -1,8 +1,8 @@
 const Project = require('../models/projectModel'); // Import Project Model
 const upload = require('../config/multer'); // Multer for image upload
 
-// Middleware for image upload
-exports.uploadProjectImage = upload.single('image');
+// Middleware for image upload using the specific multer configuration for project images
+exports.uploadProjectImage = upload.uploadProductImage.single('image'); // Use uploadProductImage
 
 // Add a New Project
 exports.addProject = async (req, res) => {
