@@ -21,6 +21,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const costRoutes = require('./routes/costRoutes');
 const subcategoryRoutes = require('./routes/subCategoryRoutes');
+const slideshowRoutes = require('./routes/slideshowRoutes');
 
 // Initialize express app
 const app = express();
@@ -54,6 +55,7 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/subcategories', subcategoryRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api', costRoutes);
+app.use('/api/slideshow', slideshowRoutes);
 // Error Middleware (to handle errors globally)
 app.use(errorMiddleware);
 

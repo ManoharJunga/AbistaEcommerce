@@ -5,6 +5,7 @@ import {
   People as PeopleIcon,
   ShoppingCart as ShoppingCartIcon,
   Folder as FolderIcon,
+  Slideshow as SlideshowIcon,
   Settings as SettingsIcon,
   ExpandLess,
   ExpandMore,
@@ -15,6 +16,7 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [productsOpen, setProductsOpen] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(false);
+  const [slideshowOpen, setSlideshowOpen] = useState(false);
 
   return (
     <div
@@ -91,6 +93,30 @@ const Sidebar = () => {
                 </li>
                 <li>
                   <Link to="/projects/add" className="nav-link text-white">Add Project</Link>
+                </li>
+              </ul>
+            )}
+          </li>
+
+          {/* Slideshow Dropdown */}
+          <li className="nav-item mb-2">
+            <button
+              className="nav-link text-white d-flex justify-content-between align-items-center"
+              onClick={() => setSlideshowOpen(!slideshowOpen)}
+            >
+              <div className="d-flex align-items-center">
+                <SlideshowIcon />
+                {isOpen && <span className="ms-3">Slideshow</span>}
+              </div>
+              {isOpen && (slideshowOpen ? <ExpandLess /> : <ExpandMore />)}
+            </button>
+            {slideshowOpen && isOpen && (
+              <ul className="ms-3 list-unstyled">
+                <li>
+                  <Link to="/slideshow" className="nav-link text-white">Manage Slideshow</Link>
+                </li>
+                <li>
+                  <Link to="/slideshow/add" className="nav-link text-white">Add Slideshow</Link>
                 </li>
               </ul>
             )}

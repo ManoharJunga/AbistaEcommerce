@@ -11,6 +11,8 @@ import ProductRating from "./pages/Products/ProductRating";
 import Settings from "./pages/Settings";
 import ProjectsPage from "./pages/Projects/ProjectsPage";
 import AddProjectPage from "./pages/Projects/AddProjectPage";
+import SlideshowPage from "./pages/SlideShow/SlideshowPage";
+import AddSlideshowPage from "./pages/SlideShow/AddSlideshowPage";
 
 export const BASE_API_URL = 'http://localhost:8000/api';
 const App = () => {
@@ -29,6 +31,8 @@ const App = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/projects" element={<ProjectsPage />} />
             <Route path="/projects/add" element={<AddProjectPage />} />
+            <Route path="/slideshow" element={<SlideshowPage />} />
+            <Route path="/slideshow/add" element={<AddSlideshowPage />} />
           </Routes>
         </div>
       </div>

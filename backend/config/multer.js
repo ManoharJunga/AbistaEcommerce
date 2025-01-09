@@ -24,5 +24,6 @@ module.exports = {
   uploadProductImage: getMulterUpload('ecommerce/products'),
   uploadCategoryImage: getMulterUpload('ecommerce/categories'),
   uploadSubCategoryImage: getMulterUpload('ecommerce/subcategories'),
-  uploadProjectImage: getMulterUpload('ecommerce/projects'), // New folder for projects
+  uploadProjectImage: getMulterUpload('ecommerce/projects'),
+  uploadSlideshowImage: getMulterUpload('ecommerce/slideshows'), // New folder for slideshow images
 };
