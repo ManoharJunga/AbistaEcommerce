@@ -13,6 +13,7 @@ import ProjectsPage from "./pages/Projects/ProjectsPage";
 import AddProjectPage from "./pages/Projects/AddProjectPage";
 import SlideshowPage from "./pages/SlideShow/SlideshowPage";
 import AddSlideshowPage from "./pages/SlideShow/AddSlideshowPage";
+import CardManagementPage from "./pages/CardManagementPage";
 
 export const BASE_API_URL = 'http://localhost:8000/api';
 const App = () => {
@@ -33,6 +34,7 @@ const App = () => {
             <Route path="/projects/add" element={<AddProjectPage />} />
             <Route path="/slideshow" element={<SlideshowPage />} />
             <Route path="/slideshow/add" element={<AddSlideshowPage />} />
+            <Route path="/card-management" element={<CardManagementPage />} />
           </Routes>
         </div>
       </div>

@@ -7,6 +7,7 @@ import {
   Folder as FolderIcon,
   Slideshow as SlideshowIcon,
   Settings as SettingsIcon,
+  CreditCard as CreditCardIcon,
   ExpandLess,
   ExpandMore,
 } from "@mui/icons-material";
@@ -120,6 +121,12 @@ const Sidebar = () => {
                 </li>
               </ul>
             )}
+          </li>
+          <li className="nav-item mb-2">
+            <Link to="/card-management" className="nav-link text-white d-flex align-items-center">
+              <CreditCardIcon />
+              {isOpen && <span className="ms-3">Card Management</span>}
+            </Link>
           </li>
 
           <li className="nav-item mb-2">
