@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const AddressSchema = new mongoose.Schema({
+  customerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Customer',
+    required: [true, 'Customer ID is required'],
+  },
   addressLine1: { 
     type: String, 
     required: [true, "Address Line 1 is required"], 
@@ -25,12 +30,13 @@ const AddressSchema = new mongoose.Schema({
   postalCode: { 
     type: String, 
     required: [true, "Postal Code is required"], 
-    match: [/^\d{5}(-\d{4})?$/, "Postal Code must be a valid format (e.g., 12345 or 12345-6789)"] 
+    match: [/^\d{6}$/, "Postal Code must be a valid 6-digit format"] 
   },
   country: { 
     type: String, 
     required: [true, "Country is required"], 
-    trim: true 
+    trim: true,
+    default: 'India'
   },
   isDefault: { 
     type: Boolean, 
