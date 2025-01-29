@@ -92,3 +92,27 @@ exports.deleteSubCategory = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+// Get SubCategories by Category
+// Get SubCategories by Category
+exports.getSubCategoriesByCategory = async (req, res) => {
+  try {
+    const categoryId = req.params.categoryId;
+    console.log(`Fetching subcategories for category: ${categoryId}`);  // Log the categoryId
+
+    // Query for subcategories by category
+    const subCategories = await SubCategory.find({ category: categoryId }).populate('category', 'name');
+    
+    console.log(subCategories); // Log the results of the query
+    
+    if (subCategories.length === 0) {
+      return res.status(404).json({ message: 'No subcategories found for this category' });
+    }
+
+    res.status(200).json(subCategories);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+

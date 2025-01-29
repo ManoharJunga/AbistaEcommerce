@@ -39,8 +39,11 @@ app.use(express.json());
 
 // Enable CORS
 app.use(cors({
-    origin: 'http://localhost:5173', // Allow only your React frontend
-  }));
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow multiple origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
   
 // Connect to MongoDB
 connectDB();

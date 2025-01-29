@@ -28,6 +28,9 @@ router.get('/', subCategoryController.getSubCategories);
 // Get a single SubCategory by ID
 router.get('/:id', subCategoryController.getSubCategoryById);
 
+// Get SubCategories by Category
+router.get('/category/:categoryId', subCategoryController.getSubCategoriesByCategory);
+
 // Update a SubCategory with image upload
 router.put(
   '/:id',
