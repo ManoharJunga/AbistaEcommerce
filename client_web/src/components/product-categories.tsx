@@ -39,25 +39,30 @@ export function ProductCategories() {
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
-        {categories.map((category, index) => (
-          <Link key={index} href="/doors">
-            <Card className="text-center hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="aspect-square relative mb-4">
-                  {/* Image with fallback if not available */}
-                  <Image
-                    src={category.image || "/placeholder.svg"}
-                    alt={category.name}
-                    fill
-                    className="object-contain"
-                    priority
-                  />
-                </div>
-                <h3 className="font-medium text-gray-900">{category.name}</h3>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+        {categories.map((category, index) => {
+          // Dynamically determine the link path based on category name
+          const categoryLink = category.name.toLowerCase() === "doors" ? "/doors" : category.name.toLowerCase() === "hardware" ? "/hardware" : "/"; // default to a fallback page
+
+          return (
+            <Link key={index} href={categoryLink}>
+              <Card className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="aspect-square relative mb-4">
+                    {/* Image with fallback if not available */}
+                    <Image
+                      src={category.image || "/placeholder.svg"}
+                      alt={category.name}
+                      fill
+                      className="object-contain"
+                      priority
+                    />
+                  </div>
+                  <h3 className="font-medium text-gray-900">{category.name}</h3>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

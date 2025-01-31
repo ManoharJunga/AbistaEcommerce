@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Container, TextField, Button, MenuItem, Typography, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Dialog, DialogActions, DialogContent, DialogTitle, CircularProgress } from '@mui/material';
+import { Container, TextField, Button, MenuItem, Typography, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 
 // Define a Product Type
@@ -12,7 +12,7 @@ interface Product {
   stock: number;
   category: string;
   subCategory: string;
-  images: string[]; // assuming images are URLs
+  images: string[];
 }
 
 const ProductForm = () => {
@@ -27,16 +27,11 @@ const ProductForm = () => {
   const [subCategories, setSubCategories] = useState([]);
   const [products, setProducts] = useState<Product[]>([]); // Use the Product type
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [openEditDialog, setOpenEditDialog] = useState(false); // Add state for edit dialog
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setIsLoading(true);
     axios.get('http://localhost:8000/api/categories')
       .then(response => setCategories(response.data))
-      .catch(err => console.error('Error fetching categories', err))
-      .finally(() => setIsLoading(false));
+      .catch(err => console.error('Error fetching categories', err));
     fetchProducts();
   }, []);
 
@@ -49,13 +44,13 @@ const ProductForm = () => {
   }, [category]);
 
   const fetchProducts = () => {
-    setIsLoading(true);
     axios.get('http://localhost:8000/api/products/get')
       .then(response => {
+        console.log(response.data); // Log to check the structure of the response
+        // Access the products array from the response
         setProducts(response.data.products); // Correctly accessing the products array
       })
-      .catch(err => console.error('Error fetching products', err))
-      .finally(() => setIsLoading(false));
+      .catch(err => console.error('Error fetching products', err));
   };
 
   const handleImageChange = (e) => {
@@ -96,22 +91,15 @@ const ProductForm = () => {
     setStock(product.stock);
     setCategory(product.category);
     setSubCategory(product.subCategory);
-    setOpenEditDialog(true); // Open the edit dialog when editing a product
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      axios.delete(`http://localhost:8000/api/products/${id}`)
-        .then(() => {
-          alert('Product deleted successfully');
-          fetchProducts();
-        })
-        .catch(err => console.error('Error deleting product', err));
-    }
-  };
-
-  const handleCloseEditDialog = () => {
-    setOpenEditDialog(false); // Close the edit dialog
+    axios.delete(`http://localhost:8000/api/products/${id}`)
+      .then(() => {
+        alert('Product deleted successfully');
+        fetchProducts();
+      })
+      .catch(err => console.error('Error deleting product', err));
   };
 
   return (
@@ -148,14 +136,6 @@ const ProductForm = () => {
             </Grid>
             <Grid item xs={12}>
               <input type="file" accept="image/*" multiple onChange={handleImageChange} />
-              {images.length > 0 && (
-                <div>
-                  <Typography variant="body2">Uploaded Images:</Typography>
-                  {images.map((img, index) => (
-                    <img key={index} src={URL.createObjectURL(img)} alt={`Preview ${index}`} width={100} height={100} style={{ marginRight: 10 }} />
-                  ))}
-                </div>
-              )}
             </Grid>
             <Grid item xs={12}>
               <Button type="submit" variant="contained" color="primary" fullWidth>{editingProduct ? 'Update Product' : 'Upload Product'}</Button>
@@ -164,99 +144,37 @@ const ProductForm = () => {
         </form>
       </Paper>
 
-      {isLoading ? (
-        <CircularProgress style={{ marginTop: 20 }} />
-      ) : (
-        <TableContainer component={Paper} style={{ marginTop: 20 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Price</TableCell>
-                <TableCell>Stock</TableCell>
-                <TableCell>Image</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {Array.isArray(products) && products.length > 0 ? (
-                products.map((product) => (
-                  <TableRow key={product._id}>
-                    <TableCell>{product.name}</TableCell>
-                    <TableCell>{product.price}</TableCell>
-                    <TableCell>{product.stock}</TableCell>
-                    <TableCell>
-                      <img src={product.images[0]} alt={product.name} width="50" height="50" />
-                    </TableCell>
-                    <TableCell>
-                      <IconButton onClick={() => handleEdit(product)}><Edit /></IconButton>
-                      <IconButton onClick={() => handleDelete(product._id)}><Delete /></IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">No Products Available</TableCell>
+      <TableContainer component={Paper} style={{ marginTop: 20 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Price</TableCell>
+              <TableCell>Stock</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Array.isArray(products) && products.length > 0 ? (
+              products.map((product) => (
+                <TableRow key={product._id}>
+                  <TableCell>{product.name}</TableCell>
+                  <TableCell>{product.price}</TableCell>
+                  <TableCell>{product.stock}</TableCell>
+                  <TableCell>
+                    <IconButton onClick={() => handleEdit(product)}><Edit /></IconButton>
+                    <IconButton onClick={() => handleDelete(product._id)}><Delete /></IconButton>
+                  </TableCell>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-
-      {/* Dialog for Edit Product */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog} fullWidth maxWidth="sm">
-        <DialogTitle>Edit Product</DialogTitle>
-        <DialogContent>
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField label="Name" fullWidth value={name} onChange={(e) => setName(e.target.value)} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField label="Description" fullWidth value={description} onChange={(e) => setDescription(e.target.value)} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField label="Price" fullWidth value={price} onChange={(e) => setPrice(e.target.value)} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField label="Stock" fullWidth value={stock} onChange={(e) => setStock(e.target.value)} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField select label="Category" fullWidth value={category} onChange={(e) => setCategory(e.target.value)}>
-                  {categories.map((cat) => (
-                    <MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField select label="SubCategory" fullWidth value={subCategory} onChange={(e) => setSubCategory(e.target.value)}>
-                  {subCategories.map((subCat) => (
-                    <MenuItem key={subCat._id} value={subCat._id}>{subCat.name}</MenuItem>
-                  ))}
-                </TextField>
-              </Grid>
-              <Grid item xs={12}>
-                <input type="file" accept="image/*" multiple onChange={handleImageChange} />
-                {images.length > 0 && (
-                  <div>
-                    <Typography variant="body2">Uploaded Images:</Typography>
-                    {images.map((img, index) => (
-                      <img key={index} src={URL.createObjectURL(img)} alt={`Preview ${index}`} width={100} height={100} style={{ marginRight: 10 }} />
-                    ))}
-                  </div>
-                )}
-              </Grid>
-              <Grid item xs={12}>
-                <DialogActions>
-                  <Button onClick={handleCloseEditDialog} color="secondary">Cancel</Button>
-                  <Button type="submit" color="primary">Update</Button>
-                </DialogActions>
-              </Grid>
-            </Grid>
-          </form>
-        </DialogContent>
-      </Dialog>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} align="center">No Products Available</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Container>
   );
 };
