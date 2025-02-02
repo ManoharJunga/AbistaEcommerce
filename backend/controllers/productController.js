@@ -69,20 +69,24 @@ exports.getProducts = async (req, res) => {
 // Get product by ID
 exports.getProductById = async (req, res) => {
   try {
-    const { productId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: "Invalid Product ID" });
+    const { id } = req.params; // Ensure the parameter matches the route
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid Product ID format" });
     }
 
-    const product = await Product.findById(productId).populate('category subCategory');
+    const product = await Product.findById(id).populate('category subCategory');
 
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 // Update product
 exports.updateProduct = async (req, res) => {

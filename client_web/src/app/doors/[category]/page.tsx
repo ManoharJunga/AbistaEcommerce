@@ -7,9 +7,6 @@ import { ProductFilters } from "@/components/doors-products/product-filters";
 import ProductGrid from "@/components/doors-products/product-grid";
 
 
-
-
-
 export default function DoorsProductPage() {
 
   return (

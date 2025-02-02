@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 interface Product {
@@ -9,14 +9,8 @@ interface Product {
     description: string;
     price: number;
     stock: number;
-    category: {
-        _id: string;
-        name: string;
-    };
-    subCategory: {
-        _id: string;
-        name: string;
-    };
+    category: { _id: string; name: string };
+    subCategory: { _id: string; name: string };
     images: string[];
     averageRating: number;
     totalReviews: number;
@@ -27,16 +21,15 @@ interface Product {
 
 export default function ProductGrid() {
     const pathname = usePathname();
+    const router = useRouter(); // ✅ Add this for navigation
     const [subcategoryId, setSubcategoryId] = useState<string | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [error, setError] = useState<string>("");
 
     useEffect(() => {
-        // Extract the subcategoryId from the pathname
-        const pathSegments = pathname.split("/"); // ["", "doors", "677e3b3630b3a8b9107d1d6b"]
-        const id = pathSegments[pathSegments.length - 1]; // Get the last segment
-        console.log("Extracted subcategoryId:", id);
+        const pathSegments = pathname.split("/");
+        const id = pathSegments[pathSegments.length - 1];
         setSubcategoryId(id);
     }, [pathname]);
 
@@ -45,16 +38,12 @@ export default function ProductGrid() {
 
         const fetchProducts = async () => {
             try {
-                console.log(`Fetching products for subcategoryId: ${subcategoryId}`);
                 const response = await fetch(
                     `http://localhost:8000/api/products/getBySubcategory?subcategory=${subcategoryId}`
                 );
-                console.log("API Response Status:", response.status);
-
                 if (!response.ok) throw new Error("Failed to fetch products");
 
                 const data = await response.json();
-                console.log("Fetched products:", data.products);
                 setProducts(data.products);
             } catch (err) {
                 setError("Error fetching products");
@@ -72,9 +61,10 @@ export default function ProductGrid() {
             {products.map((product, index) => (
                 <div
                     key={product._id}
-                    className="bg-white rounded-lg overflow-hidden shadow-sm transition-shadow hover:shadow-md"
+                    className="bg-white overflow-hidden shadow-sm transition-shadow hover:shadow-md cursor-pointer"
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
+                    onClick={() => router.push(`/doors/preview/${product._id}`)} // ✅ Navigate to preview page
                 >
                     <div className="aspect-[9/20] relative">
                         <img
