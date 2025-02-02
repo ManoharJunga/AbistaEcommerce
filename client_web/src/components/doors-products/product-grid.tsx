@@ -68,7 +68,7 @@ export default function ProductGrid() {
     if (error) return <p className="text-red-500">{error}</p>;
 
     return (
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-32">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-24 px-10">
             {products.map((product, index) => (
                 <div
                     key={product._id}

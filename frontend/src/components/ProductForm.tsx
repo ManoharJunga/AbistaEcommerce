@@ -191,7 +191,12 @@ const ProductForm: React.FC<ProductFormProps> = ({ fetchProducts, editingProduct
                             <Box mt={2}>
                                 {uploadedFiles.map((file, index) => (
                                     <Box key={file.name} display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-                                        <Avatar src={URL.createObjectURL(file)} alt={file.name} sx={{ width: 40, height: 40, mr: 1 }} /> {/* Image preview */}
+                                        <Avatar
+                                            src={file instanceof File ? URL.createObjectURL(file) : file.name}
+                                            alt={file.name}
+                                            sx={{ width: 40, height: 40, mr: 1 }}
+                                        />
+
                                         <Typography variant="body2">{file.name}</Typography>
                                         <Button onClick={() => handleRemoveImage(index)} color="error" size="small">Remove</Button>
                                     </Box>

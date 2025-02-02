@@ -15,7 +15,6 @@ export default function DoorsProductPage() {
   return (
     <div>
       <Header />
-
       <div className="px-4 py-6 grid grid-cols-1 md:grid-cols-[280px_1fr] gap-8">
         <ProductFilters />
         <ProductGrid />
