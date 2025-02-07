@@ -1,44 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const subCategoryController = require('../controllers/subCategoryController');
-const { uploadSubCategoryImage } = require('../config/multer'); // Middleware for image upload
-const { check, validationResult } = require('express-validator');
 
-// Create SubCategory with image upload
-router.post(
-  '/',
-  uploadSubCategoryImage.single('image'),
-  [
-    check('name').notEmpty().withMessage('Name is required'),
-    check('category').notEmpty().withMessage('Category is required')
-  ],
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
-  },
-  subCategoryController.createSubCategory
-);
+// Routes for subcategory operations
+router.route('/')
+  .post(subCategoryController.uploadSubCategoryImage) // Handle image upload
+  .post(subCategoryController.addSubCategory); // Handle adding a new subcategory
 
-// Get all SubCategories
-router.get('/', subCategoryController.getSubCategories);
+router.route('/:id')
+  .get(subCategoryController.getSubCategoryById)  // Get subcategory by ID
+  .delete(subCategoryController.deleteSubCategory); // Delete subcategory by ID
 
-// Get a single SubCategory by ID
-router.get('/:id', subCategoryController.getSubCategoryById);
-
-// Get SubCategories by Category
-router.get('/category/:categoryId', subCategoryController.getSubCategoriesByCategory);
-
-// Update a SubCategory with image upload
-router.put(
-  '/:id',
-  uploadSubCategoryImage.single('image'),
-  subCategoryController.updateSubCategory
-);
-
-// Delete a SubCategory
-router.delete('/:id', subCategoryController.deleteSubCategory);
+router.get('/', subCategoryController.getSubCategories); // Get all subcategories
+router.get('/category/:categoryId', subCategoryController.getSubCategoriesByCategory); // Get subcategories by category
 
 module.exports = router;

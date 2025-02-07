@@ -37,13 +37,18 @@ const ProductList = () => {
     };
 
     const handleDelete = (id: string) => {
+        console.log('Deleting product with ID:', id); // Add this line for debugging
         axios.delete(`http://localhost:8000/api/products/${id}`)
             .then(() => {
                 alert('Product deleted successfully');
                 fetchProducts();
             })
-            .catch(err => console.error('Error deleting product', err));
+            .catch(err => {
+                console.error('Error deleting product', err);
+                alert('Error deleting product'); // Show an error alert if the delete fails
+            });
     };
+    
 
     return (
         <Container maxWidth="md">

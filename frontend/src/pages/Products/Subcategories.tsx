@@ -6,7 +6,7 @@ import { Button, TextField, Select, MenuItem, CircularProgress, Typography, Inpu
 interface SubCategory {
   _id: string;
   name: string;
-  image: string;
+  image: string; // Assuming this is the URL from Cloudinary
   category: {
     name: string;
   };
@@ -31,6 +31,7 @@ const Subcategories: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const response = await axios.get(`${BASE_API_URL}/categories`);
+      console.log("Fetched Categories:", response.data); // Log categories
       setCategories(response.data);
     } catch (error) {
       console.error("Error fetching categories", error);
@@ -41,6 +42,7 @@ const Subcategories: React.FC = () => {
   const fetchSubCategories = async () => {
     try {
       const response = await axios.get(`${BASE_API_URL}/subcategories`);
+      console.log("Fetched SubCategories:", response.data); // Log subcategories
       setSubCategories(response.data);
     } catch (error) {
       console.error("Error fetching subcategories", error);
@@ -50,6 +52,7 @@ const Subcategories: React.FC = () => {
   // Handle image file change
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
+      console.log("Selected Image File:", event.target.files[0]); // Log selected image file
       setNewSubCategory({ ...newSubCategory, image: event.target.files[0] });
     }
   };
@@ -57,33 +60,45 @@ const Subcategories: React.FC = () => {
   // Handle form submission for creating a new subcategory
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault(); // Prevent default form submission behavior
-    const formData = new FormData();
     
-    // Append form data
-    formData.append('name', newSubCategory.name);
-    formData.append('category', newSubCategory.category);
-    
-    if (newSubCategory.image) {
-      console.log(newSubCategory.image);  // Log the file object for debugging
-      formData.append('image', newSubCategory.image);
-    } else {
-      console.error('Image is required');
+    if (!newSubCategory.name || !newSubCategory.category || !newSubCategory.image) {
+      console.error("All fields are required!");
       return;
     }
-  
+
+    const formData = new FormData();
+    formData.append("name", newSubCategory.name);
+    formData.append("category", newSubCategory.category);
+    formData.append("image", newSubCategory.image);
+
+    // Log form data before submission
+    console.log("Form Data to Submit:");
+    console.log("Name:", newSubCategory.name);
+    console.log("Category:", newSubCategory.category);
+    console.log("Image File:", newSubCategory.image);
+
     try {
-      const response = await axios.post('http://localhost:8000/api/subcategories', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      console.log('Subcategory created:', response.data);
+      setLoading(true);
+      const response = await axios.post(
+        `${BASE_API_URL}/subcategories`, // Ensure the URL matches your backend route for subcategories
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      
+      console.log("Subcategory created successfully:", response.data); // Log response data from server
+      setNewSubCategory({ name: "", category: "", image: null }); // Reset form fields
+      fetchSubCategories(); // Refresh list
     } catch (error) {
-      console.error('Error creating subcategory:', error);
+      console.error("Error creating subcategory:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log("Fetching categories and subcategories...");
     fetchCategories();
     fetchSubCategories();
   }, []);
@@ -157,7 +172,7 @@ const Subcategories: React.FC = () => {
               <Typography variant="h6">{subCategory.name}</Typography>
               <Typography variant="body1">Category: {subCategory.category.name}</Typography>
               <img
-                src={subCategory.image}
+                src={subCategory.image} // Assuming the image URL is returned from backend
                 alt={subCategory.name}
                 className="mt-2 w-24 h-24 object-cover rounded-md"
               />

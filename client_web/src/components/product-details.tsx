@@ -27,7 +27,7 @@ export function ProductDetails({
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold mb-2">{title}</h2>
-        <p className="text-2xl">₹{price.toFixed(2)}</p>
+        <p className="text-2xl">₹{price.toFixed(2)} / sqft</p>
         <p className="text-sm text-muted-foreground">Inclusive of all taxes</p>
       </div>
 

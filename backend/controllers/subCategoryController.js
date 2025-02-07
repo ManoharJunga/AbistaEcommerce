@@ -1,118 +1,92 @@
-const SubCategory = require('../models/subCategoryModel');
-const cloudinary = require('../config/cloudinary'); // Assuming cloudinary config is in utils/cloudinary.js
+const SubCategory = require('../models/subCategoryModel'); // Import SubCategory Model
+const upload = require('../config/multer'); // Correct import for multer config
 
-// Create SubCategory
-exports.createSubCategory = async (req, res) => {
+// Upload a single subcategory image
+exports.uploadSubCategoryImage = upload.uploadSubCategoryImage.single('image');
+
+// Add SubCategory
+exports.addSubCategory = async (req, res) => {
   try {
-    const { name, category } = req.body;
-    const image = req.file.path; // Image URL returned by Cloudinary after upload
+    // Check if the image is uploaded
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image uploaded!' });
+    }
 
-    const newSubCategory = new SubCategory({
-      name,
-      category,
-      image
+    // Process the subcategory data (Assuming you have other form data for the subcategory)
+    const subCategoryData = {
+      name: req.body.name,
+      category: req.body.category,
+      image: req.file.path,  // Cloudinary URL for the uploaded image
+    };
+
+    // You can add more fields as required
+    const subCategory = new SubCategory(subCategoryData);
+    await subCategory.save();
+
+    res.status(201).json({
+      message: 'SubCategory added successfully!',
+      subCategory,
     });
-
-    await newSubCategory.save();
-    res.status(201).json({ message: 'SubCategory created successfully', subCategory: newSubCategory });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ message: err.message });
   }
 };
 
-// Get all SubCategories
+// Get All SubCategories
 exports.getSubCategories = async (req, res) => {
   try {
-    const subCategories = await SubCategory.find().populate('category', 'name');
-    res.status(200).json(subCategories);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    const subCategories = await SubCategory.find(); // Fetch all subcategories
+    res.status(200).json(subCategories); // Return subcategories
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 
-// Get a single SubCategory by ID
+// Get Single SubCategory by ID
 exports.getSubCategoryById = async (req, res) => {
   try {
-    const subCategory = await SubCategory.findById(req.params.id).populate('category', 'name');
+    const subCategory = await SubCategory.findById(req.params.id);
     if (!subCategory) {
-      return res.status(404).json({ message: 'SubCategory not found' });
+      return res.status(404).json({ message: 'SubCategory not found!' });
     }
     res.status(200).json(subCategory);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
-
-// Update a SubCategory
-exports.updateSubCategory = async (req, res) => {
-  try {
-    const { name, category } = req.body;
-    const updateData = { name, category };
-
-    if (req.file) {
-      // If a new image is uploaded, update the image URL
-      updateData.image = req.file.path;
-    }
-
-    const updatedSubCategory = await SubCategory.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true }
-    );
-
-    if (!updatedSubCategory) {
-      return res.status(404).json({ message: 'SubCategory not found' });
-    }
-
-    res.status(200).json({ message: 'SubCategory updated successfully', subCategory: updatedSubCategory });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 
 // Delete a SubCategory
 exports.deleteSubCategory = async (req, res) => {
   try {
-    const deletedSubCategory = await SubCategory.findByIdAndDelete(req.params.id);
-    if (!deletedSubCategory) {
-      return res.status(404).json({ message: 'SubCategory not found' });
+    const subCategory = await SubCategory.findByIdAndDelete(req.params.id);
+    if (!subCategory) {
+      return res.status(404).json({ message: 'SubCategory not found!' });
     }
 
-    // Optionally, delete the image from Cloudinary
-    const imageId = deletedSubCategory.image.split('/').pop().split('.')[0]; // Get image public ID from URL
+    // Delete image from Cloudinary
+    const imageId = subCategory.image.split('/').pop().split('.')[0];
     await cloudinary.uploader.destroy(imageId);
 
-    res.status(200).json({ message: 'SubCategory deleted successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(200).json({ message: 'SubCategory deleted successfully!' });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 
-// Get SubCategories by Category
+
 // Get SubCategories by Category
 exports.getSubCategoriesByCategory = async (req, res) => {
   try {
-    const categoryId = req.params.categoryId;
-    console.log(`Fetching subcategories for category: ${categoryId}`);  // Log the categoryId
-
-    // Query for subcategories by category
-    const subCategories = await SubCategory.find({ category: categoryId }).populate('category', 'name');
-    
-    console.log(subCategories); // Log the results of the query
-    
-    if (subCategories.length === 0) {
-      return res.status(404).json({ message: 'No subcategories found for this category' });
+    const { categoryId } = req.params;
+    if (!mongoose.isValidObjectId(categoryId)) {
+      return res.status(400).json({ message: "Invalid Category ID." });
     }
 
+    const subCategories = await SubCategory.find({ category: categoryId }).populate("category", "name");
     res.status(200).json(subCategories);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error fetching subcategories by category:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-

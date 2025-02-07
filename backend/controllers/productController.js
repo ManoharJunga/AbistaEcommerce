@@ -115,20 +115,27 @@ exports.updateProduct = async (req, res) => {
 // Delete product
 exports.deleteProduct = async (req, res) => {
   try {
-    const { productId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: "Invalid Product ID" });
-    }
+      const { id } = req.params;  // Accessing the product ID from request params
 
-    const deletedProduct = await Product.findByIdAndDelete(productId);
+      // Validate the ObjectId
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({ message: "Invalid Product ID" });
+      }
 
-    if (!deletedProduct) return res.status(404).json({ message: "Product not found" });
+      const deletedProduct = await Product.findByIdAndDelete(id);
 
-    res.status(200).json({ message: "Product deleted successfully" });
+      if (!deletedProduct) {
+          return res.status(404).json({ message: "Product not found" });
+      }
+
+      res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+      console.error("Error deleting product:", error);  // Log the error for debugging
+      res.status(500).json({ message: "Server error", error });
   }
 };
+
+
 
 // Get Featured Products (Random 10)
 exports.getFeaturedProducts = async (req, res) => {

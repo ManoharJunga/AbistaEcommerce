@@ -41,7 +41,14 @@ export function ProductCategories() {
       <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
         {categories.map((category, index) => {
           // Dynamically determine the link path based on category name
-          const categoryLink = category.name.toLowerCase() === "doors" ? "/doors" : category.name.toLowerCase() === "hardware" ? "/hardware" : "/"; // default to a fallback page
+          const categoryLink =
+            category.name.toLowerCase() === "doors"
+              ? "/doors"
+              : category.name.toLowerCase() === "hardware"
+              ? "/hardware"
+              : category.name.toLowerCase() === "frames"
+              ? "/frames"
+              : "/"; // default to a fallback page
 
           return (
             <Link key={index} href={categoryLink}>

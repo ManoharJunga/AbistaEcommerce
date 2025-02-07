@@ -21,7 +21,7 @@ interface Product {
 
 export default function ProductGrid() {
     const pathname = usePathname();
-    const router = useRouter(); // ✅ Add this for navigation
+    const router = useRouter();
     const [subcategoryId, setSubcategoryId] = useState<string | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -57,37 +57,48 @@ export default function ProductGrid() {
     if (error) return <p className="text-red-500">{error}</p>;
 
     return (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-24 px-10">
+        <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 px-6 md:px-10 py-6">
             {products.map((product, index) => (
                 <div
                     key={product._id}
-                    className="bg-white overflow-hidden shadow-sm transition-shadow hover:shadow-md cursor-pointer"
+                    className="bg-white overflow-hidden shadow-md transition-transform duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
                     onMouseEnter={() => setHoveredIndex(index)}
                     onMouseLeave={() => setHoveredIndex(null)}
-                    onClick={() => router.push(`/doors/preview/${product._id}`)} // ✅ Navigate to preview page
+                    onClick={() => router.push(`/doors/preview/${product._id}`)}
                 >
-                    <div className="aspect-[9/20] relative">
-                        <img
-                            src={product.images[0] || "/placeholder.svg"}
-                            alt={product.name}
-                            className="object-cover w-full h-full transition-transform duration-300"
-                            style={{
-                                transform: hoveredIndex === index ? "scale(1.05)" : "scale(1)",
-                            }}
-                        />
+                    {/* Image Container */}
+                    <div className="aspect-[7/10] relative flex justify-center items-center">
+                        {product.images.length > 0 ? (
+                            <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                className="object-cover h-full transition-transform duration-300 "
+                                style={{
+                                    transform: hoveredIndex === index ? "scale(1.05)" : "scale(1)",
+                                }}
+                            />
+                        ) : (
+                            <div className="text-gray-500 text-sm">No Image Available</div>
+                        )}
                     </div>
 
-                    <div className="p-4">
+                    {/* Product Details */}
+                    <div className="p-5">
                         <div className="flex justify-between items-center mb-2">
-                            <h3 className="font-medium text-gray-900">{product.name}</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
                             <span className="bg-[#FFE4C4] text-[#8B4513] px-3 py-1 rounded text-sm">
                                 {product.subCategory?.name}
                             </span>
                         </div>
-                        <p className="text-gray-600 text-sm mb-4">{product.description}</p>
-                        <button className="text-[#FF8000] hover:text-[#FF6505] p-0">
-                            View Product &gt;
-                        </button>
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                            {product.description}
+                        </p>
+                        <div className="flex justify-between items-center">
+                            <span className="text-gray-900 font-semibold">₹{product.price} / sqft</span>
+                            <button className="text-[#FF8000] hover:text-[#FF6505] font-medium transition-colors">
+                                View Product &rarr;
+                            </button>
+                        </div>
                     </div>
                 </div>
             ))}
