@@ -12,7 +12,7 @@ interface Category {
 interface SubCategory {
   _id: string;
   name: string;
-  category: string; // category ID reference
+  category: string; // category is just an ID in the response
   image: string;
 }
 
@@ -20,39 +20,41 @@ export function DoorShowcase() {
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]); // State for categories
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch categories first to get the "Doors" category ID
-        const categoriesRes = await fetch("http://localhost:8000/api/categories");
-        if (!categoriesRes.ok) throw new Error("Failed to fetch categories");
-        const categoriesData: Category[] = await categoriesRes.json();
+    // Fetch categories to get the "Doors" category
+    fetch("http://localhost:8000/api/categories")
+      .then((res) => res.json())
+      .then((data: Category[]) => {
+        setCategories(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching categories:", error);
+      });
 
-        // Find the "Doors" category
-        const doorsCategory = categoriesData.find((category) => category.name === "Doors");
-        if (!doorsCategory) {
-          setSubCategories([]);
-          setLoading(false);
-          return;
+    // Fetch subcategories
+    fetch("http://localhost:8000/api/subcategories")
+      .then((res) => res.json())
+      .then((data: SubCategory[]) => {
+        // Find the "Doors" category ID
+        const doorsCategory = categories.find((category) => category.name === "Doors");
+
+        if (doorsCategory) {
+          // Filter subcategories under "Doors"
+          const filteredData = data.filter((sub) => sub.category === doorsCategory._id);
+          setSubCategories(filteredData);
+        } else {
+          setSubCategories([]); // If "Doors" category not found
         }
-
-        // Fetch subcategories that belong to the "Doors" category
-        const subCategoriesRes = await fetch("http://localhost:8000/api/subcategories?category=" + doorsCategory._id);
-        if (!subCategoriesRes.ok) throw new Error("Failed to fetch subcategories");
-        const subCategoriesData: SubCategory[] = await subCategoriesRes.json();
-
-        setSubCategories(subCategoriesData);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to load subcategories.");
-      } finally {
         setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+      })
+      .catch((error) => {
+        console.error("Error fetching subcategories:", error);
+        setError("Failed to load subcategories.");
+        setLoading(false);
+      });
+  }, [categories]);
 
   if (loading) {
     return <p className="text-center text-gray-500">Loading subcategories...</p>;

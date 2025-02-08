@@ -7,7 +7,7 @@ const subCategorySchema = new mongoose.Schema(
       required: true,
       trim: true,
       minlength: 3,
-      maxlength: 50,
+      maxlength: 50
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -17,23 +17,15 @@ const subCategorySchema = new mongoose.Schema(
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
         },
-        message: 'Invalid category ID format',
-      },
+        message: "Invalid category ID format"
+      }
     },
     image: {
-      type: String, // Cloudinary image URL or local path
-      required: true,
-    },
-    roomType: {
-      type: Boolean,
-      default: false, // Default value is false if not provided
-    },
-    roomTypeImage: {
-      type: String, // Cloudinary image URL or local path
-      default: null, // Optional
-    },
+      type: String, // Cloudinary image URL
+      required: true
+    }
   },
-  { timestamps: true }
+  { timestamps: true } 
 );
 
 const SubCategory = mongoose.model('SubCategory', subCategorySchema);
