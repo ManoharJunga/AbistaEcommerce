@@ -1,25 +1,28 @@
-const SubCategory = require('../models/subCategoryModel'); // Import SubCategory Model
-const upload = require('../config/multer'); // Correct import for multer config
+const mongoose = require('mongoose');
+const SubCategory = require('../models/subCategoryModel');
+const upload = require('../config/multer'); // Ensure multer is properly set up
 
-// Upload a single subcategory image
-exports.uploadSubCategoryImage = upload.uploadSubCategoryImage.single('image');
+// Middleware to upload images (Main image + Room Type Image)
+exports.uploadSubCategoryImages = upload.uploadSubCategoryImage.fields([
+  { name: 'image', maxCount: 1 },
+  { name: 'roomTypeImage', maxCount: 1 },
+]);
 
-// Add SubCategory
+// ✅ Add a New SubCategory
 exports.addSubCategory = async (req, res) => {
   try {
-    // Check if the image is uploaded
-    if (!req.file) {
-      return res.status(400).json({ message: 'No image uploaded!' });
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({ message: 'Main image is required!' });
     }
 
-    // Process the subcategory data (Assuming you have other form data for the subcategory)
     const subCategoryData = {
       name: req.body.name,
       category: req.body.category,
-      image: req.file.path,  // Cloudinary URL for the uploaded image
+      image: req.files.image[0].path, // Main image path
+      roomType: req.body.roomType === 'true', // Convert string to boolean
+      roomTypeImage: req.files.roomTypeImage ? req.files.roomTypeImage[0].path : null, // Optional roomTypeImage
     };
 
-    // You can add more fields as required
     const subCategory = new SubCategory(subCategoryData);
     await subCategory.save();
 
@@ -28,65 +31,57 @@ exports.addSubCategory = async (req, res) => {
       subCategory,
     });
   } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: 'Server Error', error: err.message });
   }
 };
 
-// Get All SubCategories
+// ✅ Get All SubCategories
 exports.getSubCategories = async (req, res) => {
   try {
-    const subCategories = await SubCategory.find(); // Fetch all subcategories
-    res.status(200).json(subCategories); // Return subcategories
+    const subCategories = await SubCategory.find().populate('category', 'name');
+    res.status(200).json(subCategories);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: 'Server Error', error: err.message });
   }
 };
 
-// Get Single SubCategory by ID
+// ✅ Get SubCategory by ID
 exports.getSubCategoryById = async (req, res) => {
   try {
-    const subCategory = await SubCategory.findById(req.params.id);
+    const subCategory = await SubCategory.findById(req.params.id).populate('category', 'name');
     if (!subCategory) {
       return res.status(404).json({ message: 'SubCategory not found!' });
     }
     res.status(200).json(subCategory);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: 'Invalid ID', error: err.message });
   }
 };
 
-// Delete a SubCategory
+// ✅ Delete a SubCategory by ID
 exports.deleteSubCategory = async (req, res) => {
   try {
     const subCategory = await SubCategory.findByIdAndDelete(req.params.id);
     if (!subCategory) {
       return res.status(404).json({ message: 'SubCategory not found!' });
     }
-
-    // Delete image from Cloudinary
-    const imageId = subCategory.image.split('/').pop().split('.')[0];
-    await cloudinary.uploader.destroy(imageId);
-
     res.status(200).json({ message: 'SubCategory deleted successfully!' });
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(400).json({ message: 'Invalid ID', error: err.message });
   }
 };
 
-
-// Get SubCategories by Category
+// ✅ Get SubCategories by Category
 exports.getSubCategoriesByCategory = async (req, res) => {
   try {
     const { categoryId } = req.params;
     if (!mongoose.isValidObjectId(categoryId)) {
-      return res.status(400).json({ message: "Invalid Category ID." });
+      return res.status(400).json({ message: 'Invalid Category ID.' });
     }
 
-    const subCategories = await SubCategory.find({ category: categoryId }).populate("category", "name");
+    const subCategories = await SubCategory.find({ category: categoryId }).populate('category', 'name');
     res.status(200).json(subCategories);
   } catch (error) {
-    console.error("Error fetching subcategories by category:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 };

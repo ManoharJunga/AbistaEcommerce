@@ -2,16 +2,23 @@ const express = require('express');
 const router = express.Router();
 const subCategoryController = require('../controllers/subCategoryController');
 
-// Routes for subcategory operations
-router.route('/')
-  .post(subCategoryController.uploadSubCategoryImage) // Handle image upload
-  .post(subCategoryController.addSubCategory); // Handle adding a new subcategory
+// Upload images middleware
+router.post(
+  '/',
+  subCategoryController.uploadSubCategoryImages, // Image upload middleware
+  subCategoryController.addSubCategory // Add subcategory controller
+);
 
-router.route('/:id')
-  .get(subCategoryController.getSubCategoryById)  // Get subcategory by ID
-  .delete(subCategoryController.deleteSubCategory); // Delete subcategory by ID
+// Get all subcategories
+router.get('/', subCategoryController.getSubCategories);
 
-router.get('/', subCategoryController.getSubCategories); // Get all subcategories
-router.get('/category/:categoryId', subCategoryController.getSubCategoriesByCategory); // Get subcategories by category
+// Get subcategories by category
+router.get('/category/:categoryId', subCategoryController.getSubCategoriesByCategory);
+
+// Get and delete subcategory by ID
+router
+  .route('/:id')
+  .get(subCategoryController.getSubCategoryById)
+  .delete(subCategoryController.deleteSubCategory);
 
 module.exports = router;
