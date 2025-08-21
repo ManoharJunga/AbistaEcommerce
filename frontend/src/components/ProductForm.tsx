@@ -1,7 +1,20 @@
 // ProductForm.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Container, TextField, Button, MenuItem, Typography, Grid, Paper, Box, Avatar } from '@mui/material';
+import {
+    TextField,
+    Button,
+    MenuItem,
+    Typography,
+    Grid,
+    Paper,
+    Box,
+    Avatar,
+    FormControl,
+    InputLabel,
+    Select,
+    Chip,
+} from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 
 interface Product {
@@ -13,6 +26,11 @@ interface Product {
     category: string;
     subCategory: string;
     images: string[];
+    attributes?: {
+        textures?: string[];
+        finishes?: string[];
+        materials?: string[];
+    };
 }
 
 interface Category {
@@ -25,64 +43,108 @@ interface SubCategory {
     name: string;
 }
 
+interface Finish {
+    _id: string;
+    name: string;
+}
+
+interface Material {
+    _id: string;
+    name: string;
+}
+
+interface Texture {
+    _id: string;
+    name: string;
+}
+
 interface ProductFormProps {
     fetchProducts: () => void;
     editingProduct: Product | null;
     setEditingProduct: React.Dispatch<React.SetStateAction<Product | null>>;
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ fetchProducts, editingProduct, setEditingProduct }) => {
-    const [name, setName] = useState(editingProduct?.name || '');
-    const [description, setDescription] = useState(editingProduct?.description || '');
-    const [price, setPrice] = useState(editingProduct?.price || '');
-    const [stock, setStock] = useState(editingProduct?.stock || '');
-    const [category, setCategory] = useState(editingProduct?.category || '');
-    const [subCategory, setSubCategory] = useState(editingProduct?.subCategory || '');
+const ProductForm: React.FC<ProductFormProps> = ({
+    fetchProducts,
+    editingProduct,
+    setEditingProduct,
+}) => {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [price, setPrice] = useState('');
+    const [stock, setStock] = useState('');
+    const [category, setCategory] = useState('');
+    const [subCategory, setSubCategory] = useState('');
     const [images, setImages] = useState<File[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
     const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const response = await axios.get('http://localhost:8000/api/categories');
-                setCategories(response.data);
-            } catch (err) {
-                console.error('Error fetching categories', err);
-            }
-        };
+    const [textures, setTextures] = useState<Texture[]>([]);
+    const [finishes, setFinishes] = useState<Finish[]>([]);
+    const [materials, setMaterials] = useState<Material[]>([]);
 
-        fetchCategories();
+    // Selected values
+    const [selectedTextures, setSelectedTextures] = useState<string[]>([]);
+    const [selectedFinishes, setSelectedFinishes] = useState<string[]>([]);
+    const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
+
+    // Fetch categories
+    useEffect(() => {
+        axios
+            .get('http://localhost:8000/api/categories')
+            .then((res) => setCategories(res.data))
+            .catch((err) => console.error('Error fetching categories', err));
     }, []);
 
+    // Fetch subcategories
     useEffect(() => {
-        const fetchSubcategories = async () => {
-            if (category) {
-                try {
-                    const response = await axios.get(`http://localhost:8000/api/subcategories?categoryId=${category}`);
-                    setSubCategories(response.data);
-                } catch (err) {
-                    console.error('Error fetching subcategories', err);
-                }
-            } else {
-                setSubCategories([]);
-            }
-        };
-
-        fetchSubcategories();
+        if (category) {
+            axios
+                .get(`http://localhost:8000/api/subcategories?categoryId=${category}`)
+                .then((res) => setSubCategories(res.data))
+                .catch((err) => console.error('Error fetching subcategories', err));
+        } else {
+            setSubCategories([]);
+        }
     }, [category]);
 
+    // Fetch finishes, materials, textures
+    useEffect(() => {
+        axios.get('http://localhost:8000/api/finishes').then((res) => setFinishes(res.data));
+        axios.get('http://localhost:8000/api/materials').then((res) => setMaterials(res.data));
+        axios.get('http://localhost:8000/api/textures').then((res) => setTextures(res.data));
+    }, []);
+
+    // Pre-fill form on edit
     useEffect(() => {
         if (editingProduct) {
-            setName(editingProduct.name);
-            setDescription(editingProduct.description);
-            setPrice(editingProduct.price.toString()); // Convert to string for TextField
-            setStock(editingProduct.stock.toString()); // Convert to string for TextField
-            setCategory(editingProduct.category);
-            setSubCategory(editingProduct.subCategory);
-            setUploadedFiles(editingProduct.images ? editingProduct.images.map(image => ({ name: image, size: 0, type: 'image/jpeg' } as File)) : []);
-            setImages(editingProduct.images ? editingProduct.images.map(image => ({ name: image, size: 0, type: 'image/jpeg' } as File)) : []);
+            setName(editingProduct.name || '');
+            setDescription(editingProduct.description || '');
+            setPrice(editingProduct.price?.toString() || '');
+            setStock(editingProduct.stock?.toString() || '');
+            setCategory(editingProduct.category || '');
+            setSubCategory(editingProduct.subCategory || '');
+
+            // Attributes
+            const attributes = editingProduct.attributes || {};
+            setSelectedFinishes(attributes.finishes || []);
+            setSelectedMaterials(attributes.materials || []);
+            setSelectedTextures(attributes.textures || []);
+
+            // Handle images
+            const mappedImages =
+                editingProduct.images?.map(
+                    (image: string) =>
+                    ({
+                        name: image,
+                        size: 0,
+                        type: 'image/jpeg',
+                    } as File)
+                ) || [];
+
+            setUploadedFiles(mappedImages);
+            setImages(mappedImages);
         } else {
             setName('');
             setDescription('');
@@ -90,12 +152,15 @@ const ProductForm: React.FC<ProductFormProps> = ({ fetchProducts, editingProduct
             setStock('');
             setCategory('');
             setSubCategory('');
+            setSelectedFinishes([]);
+            setSelectedMaterials([]);
+            setSelectedTextures([]);
             setUploadedFiles([]);
             setImages([]);
         }
     }, [editingProduct]);
 
-    const onDrop = useCallback((acceptedFiles) => {
+    const onDrop = useCallback((acceptedFiles: File[]) => {
         setUploadedFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
         setImages((prevImages) => [...prevImages, ...acceptedFiles]);
     }, []);
@@ -103,27 +168,46 @@ const ProductForm: React.FC<ProductFormProps> = ({ fetchProducts, editingProduct
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
     const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const formData = new FormData();
-        formData.append('name', name);
-        formData.append('description', description);
-        formData.append('price', price);
-        formData.append('stock', stock);
-        formData.append('category', category);
-        formData.append('subCategory', subCategory);
-        uploadedFiles.forEach((file) => formData.append('images', file));
+  e.preventDefault();
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('description', description);
+  formData.append('price', price);
+  formData.append('stock', stock);
+  formData.append('category', category);
+  formData.append('subCategory', subCategory);
 
-        const apiEndpoint = editingProduct ? `http://localhost:8000/api/products/${editingProduct._id}` : 'http://localhost:8000/api/products/upload';
-        const axiosMethod = editingProduct ? axios.put : axios.post;
+  // ✅ Send attributes as one JSON object
+  formData.append(
+    'attributes',
+    JSON.stringify({
+      textures: selectedTextures,
+      finishes: selectedFinishes,
+      materials: selectedMaterials
+    })
+  );
 
-        axiosMethod(apiEndpoint, formData)
-            .then(() => {
-                alert(editingProduct ? 'Product updated successfully' : 'Product uploaded successfully');
-                setEditingProduct(null);
-                fetchProducts();
-            })
-            .catch(error => console.error('Error:', error));
-    };
+  uploadedFiles.forEach((file) => formData.append('images', file));
+
+  const apiEndpoint = editingProduct
+    ? `http://localhost:8000/api/products/${editingProduct._id}`
+    : 'http://localhost:8000/api/products/upload';
+  const axiosMethod = editingProduct ? axios.put : axios.post;
+
+  axiosMethod(apiEndpoint, formData)
+    .then(() => {
+      alert(editingProduct ? 'Product updated successfully' : 'Product uploaded successfully');
+      setEditingProduct(null);
+      fetchProducts();
+    })
+    .catch((error) => console.error('Error:', error));
+
+  console.log("Submitted Form Data:");
+  for (let [key, value] of formData.entries()) {
+    console.log(`${key}:`, value);
+  }
+};
+
 
     const handleRemoveImage = (index: number) => {
         setUploadedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
@@ -173,6 +257,77 @@ const ProductForm: React.FC<ProductFormProps> = ({ fetchProducts, editingProduct
                                     ))}
                                 </TextField>
                             </Grid>
+
+                            {/* New Attribute Dropdowns */}
+                            {/* Attribute Multi Selects */}
+                            <Grid item xs={12} sm={3}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Textures</InputLabel>
+                                    <Select
+                                        multiple
+                                        value={selectedTextures}
+                                        onChange={(e) => setSelectedTextures(e.target.value as string[])}
+                                        renderValue={(selected) => (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                {(selected as string[]).map((value) => {
+                                                    const tex = textures.find((t) => t._id === value);
+                                                    return <Chip key={value} label={tex?.name || value} />;
+                                                })}
+                                            </Box>
+                                        )}
+                                    >
+                                        {textures.map((t) => (
+                                            <MenuItem key={t._id} value={t._id}>{t.name}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            <Grid item xs={12} sm={3}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Finishes</InputLabel>
+                                    <Select
+                                        multiple
+                                        value={selectedFinishes}
+                                        onChange={(e) => setSelectedFinishes(e.target.value as string[])}
+                                        renderValue={(selected) => (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                {(selected as string[]).map((value) => {
+                                                    const fin = finishes.find((f) => f._id === value);
+                                                    return <Chip key={value} label={fin?.name || value} />;
+                                                })}
+                                            </Box>
+                                        )}
+                                    >
+                                        {finishes.map((f) => (
+                                            <MenuItem key={f._id} value={f._id}>{f.name}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
+
+                            <Grid item xs={12} sm={3}>
+                                <FormControl fullWidth>
+                                    <InputLabel>Materials</InputLabel>
+                                    <Select
+                                        multiple
+                                        value={selectedMaterials}
+                                        onChange={(e) => setSelectedMaterials(e.target.value as string[])}
+                                        renderValue={(selected) => (
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                                {(selected as string[]).map((value) => {
+                                                    const mat = materials.find((m) => m._id === value);
+                                                    return <Chip key={value} label={mat?.name || value} />;
+                                                })}
+                                            </Box>
+                                        )}
+                                    >
+                                        {materials.map((m) => (
+                                            <MenuItem key={m._id} value={m._id}>{m.name}</MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </Grid>
                         </Grid>
                     </Grid>
 
@@ -196,7 +351,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ fetchProducts, editingProduct
                                             alt={file.name}
                                             sx={{ width: 40, height: 40, mr: 1 }}
                                         />
-
                                         <Typography variant="body2">{file.name}</Typography>
                                         <Button onClick={() => handleRemoveImage(index)} color="error" size="small">Remove</Button>
                                     </Box>
@@ -215,7 +369,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ fetchProducts, editingProduct
                 </Grid>
             </form>
         </Paper>
-
     );
 };
 

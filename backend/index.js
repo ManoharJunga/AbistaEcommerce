@@ -25,7 +25,9 @@ const slideshowRoutes = require('./routes/slideshowRoutes');
 const cardRoutes = require('./routes/cardRoutes');
 const interactionRoutes = require('./routes/interactionRoutes');
 const reportRoutes = require('./routes/reportRoutes');
-
+const finishRoutes = require("./routes/finishRoutes");
+const materialRoutes = require("./routes/materialRoutes");
+const textureRoutes = require("./routes/textureRoutes");
 
 
 // Initialize express app
@@ -67,6 +69,9 @@ app.use('/api/slideshow', slideshowRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/interactions', interactionRoutes);
 app.use('/api/reports', reportRoutes);
+app.use("/api/finishes", finishRoutes);
+app.use("/api/materials", materialRoutes);
+app.use("/api/textures", textureRoutes);
 
 
 // Error Middleware (to handle errors globally)

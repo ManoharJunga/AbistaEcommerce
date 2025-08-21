@@ -2,6 +2,9 @@ const Product = require('../models/productModel');
 const SubCategory = require('../models/subCategoryModel');
 const mongoose = require('mongoose');
 const upload = require('../config/multer'); // Import Cloudinary multer config
+const Finish = require('../models/finishModel');
+const Material = require('../models/materialModel');
+const Texture = require('../models/textureModel');
 
 // Middleware for handling image uploads
 exports.uploadProductImages = upload.uploadProductImage.array('images', 5); // Max 5 images for a product
@@ -17,6 +20,34 @@ exports.addProduct = async (req, res) => {
 
     const images = req.files?.map(file => file.path) || [];
 
+    // Parse attributes safely
+    let parsedAttributes = {};
+    if (attributes) {
+      const parsed = JSON.parse(attributes);
+
+      parsedAttributes = {
+        textures: parsed.textures || [],
+        finishes: parsed.finishes || [],
+        materials: parsed.materials || []
+      };
+
+      // ✅ Ensure IDs exist in DB
+      if (parsedAttributes.textures.length) {
+        const validTextures = await Texture.find({ _id: { $in: parsedAttributes.textures } });
+        parsedAttributes.textures = validTextures.map(t => t._id);
+      }
+
+      if (parsedAttributes.finishes.length) {
+        const validFinishes = await Finish.find({ _id: { $in: parsedAttributes.finishes } });
+        parsedAttributes.finishes = validFinishes.map(f => f._id);
+      }
+
+      if (parsedAttributes.materials.length) {
+        const validMaterials = await Material.find({ _id: { $in: parsedAttributes.materials } });
+        parsedAttributes.materials = validMaterials.map(m => m._id);
+      }
+    }
+
     const product = new Product({
       name,
       description,
@@ -25,7 +56,7 @@ exports.addProduct = async (req, res) => {
       category,
       subCategory,
       sizes: JSON.parse(sizes || '[]'),
-      attributes: JSON.parse(attributes || '{}'),
+      attributes: parsedAttributes, // ✅ clean ObjectId refs
       variants: JSON.parse(variants || '[]'),
       images
     });
@@ -33,6 +64,7 @@ exports.addProduct = async (req, res) => {
     await product.save();
     res.status(201).json({ message: "Product added successfully", product });
   } catch (error) {
+    console.error("Add product error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -54,6 +86,9 @@ exports.getProducts = async (req, res) => {
 
     const products = await Product.find(filter)
       .populate('category subCategory')
+      .populate('attributes.textures')   // ✅ Populate textures
+      .populate('attributes.finishes')   // ✅ Populate finishes
+      .populate('attributes.materials')  // ✅ Populate materials
       .skip((page - 1) * limit)
       .limit(parseInt(limit))
       .sort({ createdAt: -1 });
@@ -66,16 +101,22 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+
+// Get product by ID
 // Get product by ID
 exports.getProductById = async (req, res) => {
   try {
-    const { id } = req.params; // Ensure the parameter matches the route
+    const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid Product ID format" });
     }
 
-    const product = await Product.findById(id).populate('category subCategory');
+    const product = await Product.findById(id)
+      .populate('category subCategory')
+      .populate('attributes.textures')
+      .populate('attributes.finishes')
+      .populate('attributes.materials');
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
@@ -86,6 +127,7 @@ exports.getProductById = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 
 // Update product

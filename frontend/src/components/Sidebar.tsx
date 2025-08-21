@@ -10,7 +10,9 @@ import {
   CreditCard as CreditCardIcon,
   ExpandLess,
   ExpandMore,
+  
 } from "@mui/icons-material";
+import TextureIcon from '@mui/icons-material/Texture';
 import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 
 const Sidebar = () => {
@@ -73,6 +75,24 @@ const Sidebar = () => {
                 </li>
               </ul>
             )}
+          </li>
+           <li className="nav-item mb-2">
+            <Link to="/textures" className="nav-link text-white d-flex align-items-center">
+              <TextureIcon />
+              {isOpen && <span className="ms-3">Textures</span>}
+            </Link>
+          </li>
+           <li className="nav-item mb-2">
+            <Link to="/material" className="nav-link text-white d-flex align-items-center">
+              <TextureIcon />
+              {isOpen && <span className="ms-3">Material</span>}
+            </Link>
+          </li>
+           <li className="nav-item mb-2">
+            <Link to="/finishes" className="nav-link text-white d-flex align-items-center">
+              <TextureIcon />
+              {isOpen && <span className="ms-3">Finishes</span>}
+            </Link>
           </li>
 
           {/* Projects Dropdown */}

@@ -1,5 +1,4 @@
 // src/App.tsx
-import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
@@ -14,6 +13,10 @@ import AddProjectPage from "./pages/Projects/AddProjectPage";
 import SlideshowPage from "./pages/SlideShow/SlideshowPage";
 import AddSlideshowPage from "./pages/SlideShow/AddSlideshowPage";
 import CardManagementPage from "./pages/CardManagementPage";
+import TexturePage from "./pages/Texture/TexturePage";
+import MaterialPage from "./pages/Texture/MaterialPage";
+import FinishPage from "./pages/Texture/FinishPage"
+
 
 export const BASE_API_URL = 'http://localhost:8000/api';
 const App = () => {
@@ -35,6 +38,9 @@ const App = () => {
             <Route path="/slideshow" element={<SlideshowPage />} />
             <Route path="/slideshow/add" element={<AddSlideshowPage />} />
             <Route path="/card-management" element={<CardManagementPage />} />
+            <Route path="/textures" element={<TexturePage />} />
+            <Route path="/material" element={<MaterialPage />} />
+             <Route path="/finishes" element={<FinishPage />} />
           </Routes>
         </div>
       </div>
