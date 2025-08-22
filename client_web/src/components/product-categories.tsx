@@ -33,29 +33,21 @@ export function ProductCategories() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>; // You can replace this with a spinner or loading indicator
+    return <div>Loading...</div>;
   }
 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
         {categories.map((category, index) => {
-          // Dynamically determine the link path based on category name
-          const categoryLink =
-            category.name.toLowerCase() === "doors"
-              ? "/doors"
-              : category.name.toLowerCase() === "hardware"
-              ? "/hardware"
-              : category.name.toLowerCase() === "frames"
-              ? "/frames"
-              : "/"; // default to a fallback page
+          // Dynamic link to /[category]
+          const categoryLink = `/${category.name.toLowerCase()}`;
 
           return (
             <Link key={index} href={categoryLink}>
               <Card className="text-center hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <div className="aspect-square relative mb-4">
-                    {/* Image with fallback if not available */}
                     <Image
                       src={category.image || "/placeholder.svg"}
                       alt={category.name}
@@ -64,7 +56,7 @@ export function ProductCategories() {
                       priority
                     />
                   </div>
-                  <h3 className="font-medium text-gray-900">{category.name}</h3>
+                  <h3 className="font-medium text-gray-900 capitalize">{category.name}</h3>
                 </CardContent>
               </Card>
             </Link>

@@ -24,4 +24,6 @@ module.exports = {
   uploadProjectImage: getMulterUpload('ecommerce/projects'),
   uploadSlideshowImage: getMulterUpload('ecommerce/slideshows'),
   uploadCardImage: getMulterUpload('ecommerce/cards'), 
+  uploadFeatureIcon: getMulterUpload('ecommerce/features'),
+ uploadSubFeatureIcon: getMulterUpload('ecommerce/subfeatures'),
 };

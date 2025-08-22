@@ -1,160 +1,170 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Dashboard as DashboardIcon,
-  People as PeopleIcon,
-  ShoppingCart as ShoppingCartIcon,
-  Folder as FolderIcon,
-  Slideshow as SlideshowIcon,
-  Settings as SettingsIcon,
-  CreditCard as CreditCardIcon,
-  ExpandLess,
-  ExpandMore,
-  
-} from "@mui/icons-material";
-import TextureIcon from '@mui/icons-material/Texture';
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
+  LayoutDashboard,
+  Users,
+  ShoppingBag,
+  Layers,
+  Settings,
+  CreditCard,
+  ChevronDown,
+  ChevronUp,
+  Blocks,
+  Folder,
+  PlayCircle,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Define Menu Items
+const menuItems = [
+  {
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/",
+  },
+  {
+    label: "Customers",
+    icon: Users,
+    path: "/customers",
+  },
+  {
+    label: "Products",
+    icon: ShoppingBag,
+    children: [
+      { label: "Product", path: "/products" },
+      { label: "Categories", path: "/products/categories" },
+      { label: "Subcategories", path: "/products/subcategories" },
+      { label: "Product Ratings", path: "/products/ratings" },
+    ],
+  },
+  {
+    label: "Attributes",
+    icon: Layers, // Parent icon for the group
+    children: [
+      { label: "Textures", path: "/textures" },
+      { label: "Material", path: "/material" },
+      { label: "Finishes", path: "/finishes" },
+    ],
+  },{
+    label: "Features",
+    icon: Blocks, // Parent icon for the group
+    children: [
+      { label: "Category Features", path: "/featurescategories" },
+      { label: "SubCategory Features", path: "/featuresSubcategories" },
+    ],
+  },
+  {
+    label: "Projects",
+    icon: Folder,
+    children: [
+      { label: "All Projects", path: "/projects" },
+      { label: "Add Project", path: "/projects/add" },
+    ],
+  },
+  {
+    label: "Slideshow",
+    icon: PlayCircle,
+    children: [
+      { label: "Manage Slideshow", path: "/slideshow" },
+      { label: "Add Slideshow", path: "/slideshow/add" },
+    ],
+  },
+  {
+    label: "Card Management",
+    icon: CreditCard,
+    path: "/card-management",
+  },
+  {
+    label: "Settings",
+    icon: Settings,
+    path: "/settings",
+  },
+];
+
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
-  const [productsOpen, setProductsOpen] = useState(false);
-  const [projectsOpen, setProjectsOpen] = useState(false);
-  const [slideshowOpen, setSlideshowOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+
+  const toggleDropdown = (label: string) => {
+    setOpenDropdown(openDropdown === label ? null : label);
+  };
 
   return (
     <div
-      className={`bg-dark text-white vh-100 p-3 ${isOpen ? "w-25" : "w-10"} transition-all duration-300`}
-      style={{ width: isOpen ? "250px" : "70px" }}
+      className={`bg-gray-900 text-gray-100 h-screen flex flex-col transition-all duration-300 ${
+        isOpen ? "w-64" : "w-20"
+      }`}
     >
-      <button
-        className="btn btn-light mb-4"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? "❮" : "❯"}
-      </button>
-      <nav className="mt-4">
-        <ul className="nav flex-column">
-          <li className="nav-item mb-2">
-            <Link to="/" className="nav-link text-white d-flex align-items-center">
-              <DashboardIcon />
-              {isOpen && <span className="ms-3">Dashboard</span>}
-            </Link>
-          </li>
-          <li className="nav-item mb-2">
-            <Link to="/customers" className="nav-link text-white d-flex align-items-center">
-              <PeopleIcon />
-              {isOpen && <span className="ms-3">Customers</span>}
-            </Link>
-          </li>
+      {/* Toggle Button */}
+      <div className="flex justify-end p-3">
+        <button
+          className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? "❮" : "❯"}
+        </button>
+      </div>
 
-          {/* Products Dropdown */}
-          <li className="nav-item mb-2">
-            <button
-              className="nav-link text-white d-flex justify-content-between align-items-center"
-              onClick={() => setProductsOpen(!productsOpen)}
-            >
-              <div className="d-flex align-items-center">
-                <ShoppingCartIcon />
-                {isOpen && <span className="ms-3">Products</span>}
-              </div>
-              {isOpen && (productsOpen ? <ExpandLess /> : <ExpandMore />)}
-            </button>
-            {productsOpen && isOpen && (
-              <ul className="ms-3 list-unstyled">
-                <li>
-                  <Link to="/products" className="nav-link text-white">Product</Link>
-                </li>
-                <li>
-                  <Link to="/products/categories" className="nav-link text-white">Categories</Link>
-                </li>
-                <li>
-                  <Link to="/products/subcategories" className="nav-link text-white">Subcategories</Link>
-                </li>
-                <li>
-                  <Link to="/products/ratings" className="nav-link text-white">Product Ratings</Link>
-                </li>
-              </ul>
-            )}
-          </li>
-           <li className="nav-item mb-2">
-            <Link to="/textures" className="nav-link text-white d-flex align-items-center">
-              <TextureIcon />
-              {isOpen && <span className="ms-3">Textures</span>}
-            </Link>
-          </li>
-           <li className="nav-item mb-2">
-            <Link to="/material" className="nav-link text-white d-flex align-items-center">
-              <TextureIcon />
-              {isOpen && <span className="ms-3">Material</span>}
-            </Link>
-          </li>
-           <li className="nav-item mb-2">
-            <Link to="/finishes" className="nav-link text-white d-flex align-items-center">
-              <TextureIcon />
-              {isOpen && <span className="ms-3">Finishes</span>}
-            </Link>
-          </li>
+      <nav className="flex-1">
+        <ul className="space-y-2 px-3">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
 
-          {/* Projects Dropdown */}
-          <li className="nav-item mb-2">
-            <button
-              className="nav-link text-white d-flex justify-content-between align-items-center"
-              onClick={() => setProjectsOpen(!projectsOpen)}
-            >
-              <div className="d-flex align-items-center">
-                <FolderIcon />
-                {isOpen && <span className="ms-3">Projects</span>}
-              </div>
-              {isOpen && (projectsOpen ? <ExpandLess /> : <ExpandMore />)}
-            </button>
-            {projectsOpen && isOpen && (
-              <ul className="ms-3 list-unstyled">
-                <li>
-                  <Link to="/projects" className="nav-link text-white">All Projects</Link>
+            // If it has children => Dropdown
+            if (item.children) {
+              const isDropdownOpen = openDropdown === item.label;
+              return (
+                <li key={item.label}>
+                  <button
+                    className="flex items-center justify-between w-full p-2 rounded-lg hover:bg-gray-800 transition"
+                    onClick={() => toggleDropdown(item.label)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon size={20} />
+                      {isOpen && <span>{item.label}</span>}
+                    </div>
+                    {isOpen &&
+                      (isDropdownOpen ? <ChevronUp /> : <ChevronDown />)}
+                  </button>
+                  <AnimatePresence>
+                    {isDropdownOpen && isOpen && (
+                      <motion.ul
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="pl-8 mt-1 space-y-1"
+                      >
+                        {item.children.map((child) => (
+                          <li key={child.label}>
+                            <Link
+                              to={child.path}
+                              className="block hover:text-gray-300"
+                            >
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
                 </li>
-                <li>
-                  <Link to="/projects/add" className="nav-link text-white">Add Project</Link>
-                </li>
-              </ul>
-            )}
-          </li>
+              );
+            }
 
-          {/* Slideshow Dropdown */}
-          <li className="nav-item mb-2">
-            <button
-              className="nav-link text-white d-flex justify-content-between align-items-center"
-              onClick={() => setSlideshowOpen(!slideshowOpen)}
-            >
-              <div className="d-flex align-items-center">
-                <SlideshowIcon />
-                {isOpen && <span className="ms-3">Slideshow</span>}
-              </div>
-              {isOpen && (slideshowOpen ? <ExpandLess /> : <ExpandMore />)}
-            </button>
-            {slideshowOpen && isOpen && (
-              <ul className="ms-3 list-unstyled">
-                <li>
-                  <Link to="/slideshow" className="nav-link text-white">Manage Slideshow</Link>
-                </li>
-                <li>
-                  <Link to="/slideshow/add" className="nav-link text-white">Add Slideshow</Link>
-                </li>
-              </ul>
-            )}
-          </li>
-          <li className="nav-item mb-2">
-            <Link to="/card-management" className="nav-link text-white d-flex align-items-center">
-              <CreditCardIcon />
-              {isOpen && <span className="ms-3">Card Management</span>}
-            </Link>
-          </li>
-
-          <li className="nav-item mb-2">
-            <Link to="/settings" className="nav-link text-white d-flex align-items-center">
-              <SettingsIcon />
-              {isOpen && <span className="ms-3">Settings</span>}
-            </Link>
-          </li>
+            // Normal Link
+            return (
+              <li key={item.label}>
+                <Link
+                  to={item.path!}
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 transition"
+                >
+                  <Icon size={20} />
+                  {isOpen && <span>{item.label}</span>}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </div>

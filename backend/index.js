@@ -28,7 +28,8 @@ const reportRoutes = require('./routes/reportRoutes');
 const finishRoutes = require("./routes/finishRoutes");
 const materialRoutes = require("./routes/materialRoutes");
 const textureRoutes = require("./routes/textureRoutes");
-
+const featureCategoryRoutes = require("./routes/featureCategoryRoutes");
+const featureSubCategoryRoutes = require("./routes/featureSubCategoryRoutes");
 
 // Initialize express app
 const app = express();
@@ -72,6 +73,8 @@ app.use('/api/reports', reportRoutes);
 app.use("/api/finishes", finishRoutes);
 app.use("/api/materials", materialRoutes);
 app.use("/api/textures", textureRoutes);
+app.use("/api/feature-categories", featureCategoryRoutes);
+app.use("/api/subcategory-features", featureSubCategoryRoutes)
 
 
 // Error Middleware (to handle errors globally)

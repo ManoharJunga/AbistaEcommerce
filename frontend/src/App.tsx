@@ -16,6 +16,8 @@ import CardManagementPage from "./pages/CardManagementPage";
 import TexturePage from "./pages/Texture/TexturePage";
 import MaterialPage from "./pages/Texture/MaterialPage";
 import FinishPage from "./pages/Texture/FinishPage"
+import FeatureCategoryManager from "./pages/Features/FeatureCategoryManager";
+import SubCategoryFeatureManager from "./pages/Features/SubCategoryFeatureManager";
 
 
 export const BASE_API_URL = 'http://localhost:8000/api';
@@ -41,6 +43,8 @@ const App = () => {
             <Route path="/textures" element={<TexturePage />} />
             <Route path="/material" element={<MaterialPage />} />
              <Route path="/finishes" element={<FinishPage />} />
+             <Route path="/featurescategories" element={<FeatureCategoryManager />} />
+             <Route path="/featuresSubcategories" element={<SubCategoryFeatureManager />} />
           </Routes>
         </div>
       </div>
