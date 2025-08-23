@@ -1,14 +1,16 @@
 import React, { useState } from "react";
-import { TextField, Button, Typography } from "@mui/material";
+import { TextField, Button, Typography, MenuItem } from "@mui/material";
 import axios from "axios";
-
-import { BASE_API_URL } from "../../App";// Update this to your API's base URL
+import { BASE_API_URL } from "../../App"; // Update this to your API's base URL
 
 const AddSlideshowPage = () => {
+  const [subtitle, setSubtitle] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [name, setName] = useState("");
-  const [tags, setTags] = useState("");
+  const [ctaText, setCtaText] = useState("Shop Now");
+  const [ctaLink, setCtaLink] = useState("/");
+  const [tags, setTags] = useState("doors");
+  const [order, setOrder] = useState<number>(0);
   const [image, setImage] = useState<File | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -20,10 +22,13 @@ const AddSlideshowPage = () => {
     }
 
     const formData = new FormData();
+    formData.append("subtitle", subtitle);
     formData.append("title", title);
     formData.append("description", description);
-    formData.append("name", name);
+    formData.append("ctaText", ctaText);
+    formData.append("ctaLink", ctaLink);
     formData.append("tags", tags);
+    formData.append("order", order.toString());
     formData.append("image", image);
 
     axios
@@ -32,12 +37,15 @@ const AddSlideshowPage = () => {
           "Content-Type": "multipart/form-data",
         },
       })
-      .then((response) => {
+      .then(() => {
         alert("Slide added successfully!");
+        setSubtitle("");
         setTitle("");
         setDescription("");
-        setName("");
-        setTags("");
+        setCtaText("Shop Now");
+        setCtaLink("/");
+        setTags("doors");
+        setOrder(0);
         setImage(null);
       })
       .catch((error) => {
@@ -54,9 +62,19 @@ const AddSlideshowPage = () => {
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <TextField
+            label="Subtitle"
+            variant="outlined"
+            fullWidth
+            value={subtitle}
+            onChange={(e) => setSubtitle(e.target.value)}
+          />
+        </div>
+        <div className="mb-3">
+          <TextField
             label="Title"
             variant="outlined"
             fullWidth
+            required
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -68,26 +86,52 @@ const AddSlideshowPage = () => {
             fullWidth
             multiline
             rows={3}
+            required
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
         <div className="mb-3">
           <TextField
-            label="Name"
+            label="CTA Text"
             variant="outlined"
             fullWidth
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={ctaText}
+            onChange={(e) => setCtaText(e.target.value)}
           />
         </div>
         <div className="mb-3">
           <TextField
-            label="Tags (comma-separated)"
+            label="CTA Link"
+            variant="outlined"
+            fullWidth
+            value={ctaLink}
+            onChange={(e) => setCtaLink(e.target.value)}
+          />
+        </div>
+        <div className="mb-3">
+          <TextField
+            select
+            label="Tags"
             variant="outlined"
             fullWidth
             value={tags}
             onChange={(e) => setTags(e.target.value)}
+          >
+            <MenuItem value="doors">Doors</MenuItem>
+            <MenuItem value="frames">Frames</MenuItem>
+            <MenuItem value="hardware">Hardware</MenuItem>
+            <MenuItem value="main page">Main Page</MenuItem>
+          </TextField>
+        </div>
+        <div className="mb-3">
+          <TextField
+            type="number"
+            label="Order"
+            variant="outlined"
+            fullWidth
+            value={order}
+            onChange={(e) => setOrder(Number(e.target.value))}
           />
         </div>
         <div className="mb-3">

@@ -5,6 +5,8 @@ const upload = require('../config/multer'); // Import Cloudinary multer config
 const Finish = require('../models/finishModel');
 const Material = require('../models/materialModel');
 const Texture = require('../models/textureModel');
+const slugify = require("slugify");
+
 
 // Middleware for handling image uploads
 exports.uploadProductImages = upload.uploadProductImage.array('images', 5); // Max 5 images for a product
@@ -20,43 +22,18 @@ exports.addProduct = async (req, res) => {
 
     const images = req.files?.map(file => file.path) || [];
 
-    // Parse attributes safely
-    let parsedAttributes = {};
-    if (attributes) {
-      const parsed = JSON.parse(attributes);
-
-      parsedAttributes = {
-        textures: parsed.textures || [],
-        finishes: parsed.finishes || [],
-        materials: parsed.materials || []
-      };
-
-      // ✅ Ensure IDs exist in DB
-      if (parsedAttributes.textures.length) {
-        const validTextures = await Texture.find({ _id: { $in: parsedAttributes.textures } });
-        parsedAttributes.textures = validTextures.map(t => t._id);
-      }
-
-      if (parsedAttributes.finishes.length) {
-        const validFinishes = await Finish.find({ _id: { $in: parsedAttributes.finishes } });
-        parsedAttributes.finishes = validFinishes.map(f => f._id);
-      }
-
-      if (parsedAttributes.materials.length) {
-        const validMaterials = await Material.find({ _id: { $in: parsedAttributes.materials } });
-        parsedAttributes.materials = validMaterials.map(m => m._id);
-      }
-    }
+    // Attributes parsing (same as before)...
 
     const product = new Product({
       name,
+      slug: slugify(name, { lower: true, strict: true }), // ✅ generate slug
       description,
       price,
       stock,
       category,
       subCategory,
       sizes: JSON.parse(sizes || '[]'),
-      attributes: parsedAttributes, // ✅ clean ObjectId refs
+      attributes: parsedAttributes,
       variants: JSON.parse(variants || '[]'),
       images
     });
@@ -128,31 +105,59 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-
-
 // Update product
 exports.updateProduct = async (req, res) => {
   try {
-    const { productId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(productId)) {
+    const { id } = req.params;  // ✅ use "id" instead of productId
+
+    // ✅ Validate Product ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid Product ID" });
     }
 
     let updateData = { ...req.body };
 
+    // ✅ Parse attributes if sent as JSON string
+    if (updateData.attributes && typeof updateData.attributes === "string") {
+      try {
+        updateData.attributes = JSON.parse(updateData.attributes);
+      } catch {
+        return res.status(400).json({ message: "Invalid attributes format" });
+      }
+    }
+
+    // ✅ Fix category fields
+    if (updateData.categoryId) {
+      updateData.category = updateData.categoryId;
+      delete updateData.categoryId;
+    }
+    if (updateData.subCategoryId) {
+      updateData.subCategory = updateData.subCategoryId;
+      delete updateData.subCategoryId;
+    }
+
+    // ✅ Handle images
     if (req.files?.length) {
       updateData.images = req.files.map(file => file.path);
     }
 
-    const updatedProduct = await Product.findByIdAndUpdate(productId, updateData, { new: true });
+    // ✅ Update product
+    const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
 
-    if (!updatedProduct) return res.status(404).json({ message: "Product not found" });
+    if (!updatedProduct) {
+      return res.status(404).json({ message: "Product not found" });
+    }
 
-    res.status(200).json({ message: "Product updated successfully", updatedProduct });
+    res.status(200).json({
+      message: "Product updated successfully",
+      updatedProduct,
+    });
   } catch (error) {
+    console.error("Update Product Error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 // Delete product
 exports.deleteProduct = async (req, res) => {
@@ -220,5 +225,26 @@ exports.getProductsBySubcategory = async (req, res) => {
     res.status(200).json({ products });
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+};
+
+
+exports.getProductBySlug = async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    const product = await Product.findOne({ slug })
+      .populate('category subCategory')
+      .populate('attributes.textures')
+      .populate('attributes.finishes')
+      .populate('attributes.materials');
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
   }
 };

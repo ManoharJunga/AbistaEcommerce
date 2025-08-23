@@ -40,7 +40,11 @@ const Subcategories: React.FC = () => {
     categoryId: "",
     image: null as File | null,
   });
+
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
 
   // Fetch categories
   const fetchCategories = async () => {
@@ -75,7 +79,7 @@ const Subcategories: React.FC = () => {
     setNewSubCategory({ ...newSubCategory, name, slug });
   };
 
-  // Submit form
+  // Submit form (Create or Update)
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -83,8 +87,7 @@ const Subcategories: React.FC = () => {
       !newSubCategory.name ||
       !newSubCategory.slug ||
       !newSubCategory.description ||
-      !newSubCategory.categoryId ||
-      !newSubCategory.image
+      !newSubCategory.categoryId
     ) {
       console.error("All fields are required!");
       return;
@@ -95,19 +98,32 @@ const Subcategories: React.FC = () => {
     formData.append("slug", newSubCategory.slug);
     formData.append("description", newSubCategory.description);
     formData.append("categoryId", newSubCategory.categoryId);
-    formData.append("image", newSubCategory.image);
+    if (newSubCategory.image) {
+      formData.append("image", newSubCategory.image);
+    }
 
     try {
       setLoading(true);
-      const response = await axios.post(
-        `${BASE_API_URL}/subcategories`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
 
-      console.log("Subcategory created:", response.data);
+      if (editingId) {
+        // Update subcategory
+        const response = await axios.put(
+          `${BASE_API_URL}/subcategories/${editingId}`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        console.log("Subcategory updated:", response.data);
+      } else {
+        // Create new subcategory
+        const response = await axios.post(
+          `${BASE_API_URL}/subcategories`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        console.log("Subcategory created:", response.data);
+      }
+
+      // Reset form
       setNewSubCategory({
         name: "",
         slug: "",
@@ -115,13 +131,35 @@ const Subcategories: React.FC = () => {
         categoryId: "",
         image: null,
       });
+      setEditingId(null);
       fetchSubCategories();
     } catch (error) {
-      console.error("Error creating subcategory:", error);
+      console.error("Error saving subcategory:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Handle edit
+  const handleEdit = (subcategory: SubCategory) => {
+    setEditingId(subcategory._id);
+
+    setNewSubCategory({
+      name: subcategory.name || "",
+      slug: subcategory.slug || "",
+      description: subcategory.description || "",
+      categoryId:
+        typeof subcategory.categoryId === "string"
+          ? subcategory.categoryId
+          : subcategory.categoryId?._id || "",
+      image: null, // reset so user can choose new file
+    });
+
+    // keep the existing image for preview
+    setPreviewImage(subcategory.image || null);
+  };
+
+
 
   useEffect(() => {
     fetchCategories();
@@ -135,7 +173,7 @@ const Subcategories: React.FC = () => {
       </Typography>
 
       <Typography variant="h5" className="mb-4">
-        Create a New SubCategory
+        {editingId ? "Edit SubCategory" : "Create a New SubCategory"}
       </Typography>
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Name */}
@@ -147,7 +185,7 @@ const Subcategories: React.FC = () => {
           required
         />
 
-        {/* Slug (auto-generated but editable) */}
+        {/* Slug */}
         <TextField
           label="Slug"
           value={newSubCategory.slug}
@@ -194,10 +232,27 @@ const Subcategories: React.FC = () => {
         <input
           type="file"
           accept="image/*"
-          onChange={handleImageChange}
-          required
+          onChange={(e) => {
+            handleImageChange(e);
+            if (e.target.files && e.target.files[0]) {
+              setPreviewImage(URL.createObjectURL(e.target.files[0])); // preview new file
+            }
+          }}
           className="border p-2"
         />
+
+        {/* Show preview image */}
+        {previewImage && (
+          <div className="mt-2">
+            <Typography variant="body2">Current Image:</Typography>
+            <img
+              src={previewImage}
+              alt="Subcategory preview"
+              className="mt-1 w-32 h-32 object-cover rounded-md border"
+            />
+          </div>
+        )}
+
 
         {/* Submit Button */}
         <div className="text-center">
@@ -208,7 +263,13 @@ const Subcategories: React.FC = () => {
             disabled={loading}
             className="w-full"
           >
-            {loading ? <CircularProgress size={24} /> : "Create SubCategory"}
+            {loading ? (
+              <CircularProgress size={24} />
+            ) : editingId ? (
+              "Update SubCategory"
+            ) : (
+              "Create SubCategory"
+            )}
           </Button>
         </div>
       </form>
@@ -238,6 +299,14 @@ const Subcategories: React.FC = () => {
                 alt={subCategory.name}
                 className="mt-2 w-24 h-24 object-cover rounded-md"
               />
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={() => handleEdit(subCategory)}
+                className="mt-2"
+              >
+                Edit
+              </Button>
             </li>
           ))}
         </ul>

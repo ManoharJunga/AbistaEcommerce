@@ -1,9 +1,9 @@
 // ProductList.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { 
-    Container, Paper, Table, TableBody, TableCell, TableContainer, 
-    TableHead, TableRow, IconButton, Typography, Chip 
+import {
+    Container, Paper, Table, TableBody, TableCell, TableContainer,
+    TableHead, TableRow, IconButton, Typography, Chip
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 import ProductForm from './ProductForm';
@@ -24,11 +24,12 @@ interface Variant {
 interface Product {
     _id: string;
     name: string;
+    slug: string;  // ✅ NEW
     description: string;
     price: number;
     stock: number;
-    category: { _id: string; name: string };       // populated from backend
-    subCategory: { _id: string; name: string };   // populated from backend
+    category: { _id: string; name: string };
+    subCategory: { _id: string; name: string };
     sizes: Size[];
     attributes?: {
         textures?: { _id: string; name: string }[];
@@ -52,7 +53,7 @@ const ProductList = () => {
     const fetchProducts = () => {
         axios.get('http://localhost:8000/api/products/get')
             .then(response => {
-                setProducts(response.data.products);
+                setProducts(response.data.products || []); // ✅ safe
             })
             .catch(err => console.error('Error fetching products', err));
     };
@@ -75,10 +76,11 @@ const ProductList = () => {
 
     return (
         <Container maxWidth="lg">
-            <ProductForm 
-                fetchProducts={fetchProducts} 
-                editingProduct={editingProduct} 
-                setEditingProduct={setEditingProduct} 
+            {/* ✅ Pass editingProduct + setEditingProduct to form */}
+            <ProductForm
+                fetchProducts={fetchProducts}
+                editingProduct={editingProduct}
+                setEditingProduct={setEditingProduct}
             />
 
             <TableContainer component={Paper} style={{ marginTop: 20 }}>
@@ -87,6 +89,7 @@ const ProductList = () => {
                         <TableRow>
                             <TableCell>Image</TableCell>
                             <TableCell>Name</TableCell>
+                            <TableCell>Slug</TableCell> {/* ✅ New column */}
                             <TableCell>Description</TableCell>
                             <TableCell>Price</TableCell>
                             <TableCell>Stock</TableCell>
@@ -120,6 +123,7 @@ const ProductList = () => {
                                     </TableCell>
 
                                     <TableCell>{product.name}</TableCell>
+                                    <TableCell>{product.slug}</TableCell> {/* ✅ New */}
                                     <TableCell>{product.description}</TableCell>
                                     <TableCell>{product.price}</TableCell>
                                     <TableCell>{product.stock}</TableCell>
@@ -188,6 +192,7 @@ const ProductList = () => {
                                     <TableCell>{product.averageRating}</TableCell>
                                     <TableCell>{product.totalReviews}</TableCell>
 
+                                    {/* Actions */}
                                     <TableCell>
                                         <IconButton onClick={() => handleEdit(product)}><Edit /></IconButton>
                                         <IconButton onClick={() => handleDelete(product._id)}><Delete /></IconButton>
@@ -196,9 +201,7 @@ const ProductList = () => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={15} align="center">
-                                    No Products Available
-                                </TableCell>
+                                <TableCell colSpan={16} align="center">No Products Available</TableCell>
                             </TableRow>
                         )}
                     </TableBody>

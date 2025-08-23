@@ -1,17 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const {
-  addSlideshow,
-  getSlideshows,
-  getSlideshowById,
-  deleteSlideshow,
-  uploadSlideshowImage,
-} = require('../controllers/slideshowController');
+const slideshowController = require('../controllers/slideshowController');
 
-// Routes for slideshows
-router.post('/', uploadSlideshowImage, addSlideshow); // Add a new slideshow with image
-router.get('/', getSlideshows); // Get all slideshows
-router.get('/:id', getSlideshowById); // Get slideshow by ID
-router.delete('/:id', deleteSlideshow); // Delete slideshow by ID
+// Upload middleware
+router.post(
+  '/',
+  slideshowController.uploadSlideshowImage,
+  slideshowController.addSlideshow
+);
+
+router.get('/', slideshowController.getSlideshows);
+router.get('/:id', slideshowController.getSlideshowById);
+
+router.put(
+  '/:id',
+  slideshowController.uploadSlideshowImage,
+  slideshowController.updateSlideshow
+);
+
+router.delete('/:id', slideshowController.deleteSlideshow);
 
 module.exports = router;

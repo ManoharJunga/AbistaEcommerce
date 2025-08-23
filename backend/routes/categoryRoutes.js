@@ -9,11 +9,13 @@ const {
   updateCategory
 } = require('../controllers/categoryController');
 
+
 // Routes for categories
-router.put("/:id", updateCategory);
-router.post('/', uploadCategoryImage, addCategory); // Add new category
-router.get('/', getCategories); // Get all categories
-router.get('/:id', getCategoryById); // Get single category by ID
-router.delete('/:id', deleteCategory); // Delete category by ID
+router.put("/:id", uploadCategoryImage, updateCategory); // 👈 Add multer here
+router.post("/", uploadCategoryImage, addCategory); 
+router.get("/", getCategories); 
+router.get("/:id", getCategoryById); 
+router.delete("/:id", deleteCategory); 
+
 
 module.exports = router;

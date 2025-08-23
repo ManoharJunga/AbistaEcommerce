@@ -20,4 +20,14 @@ router.route("/:id")
   .get(subCategoryController.getSubCategoryById)
   .delete(subCategoryController.deleteSubCategory);
 
+// Get / Update / Delete subcategory by ID
+router.route("/:id")
+  .get(subCategoryController.getSubCategoryById)
+  .put(
+    subCategoryController.uploadSubCategoryImage,
+    subCategoryController.updateSubCategory
+  )
+  .delete(subCategoryController.deleteSubCategory);
+
+
 module.exports = router;

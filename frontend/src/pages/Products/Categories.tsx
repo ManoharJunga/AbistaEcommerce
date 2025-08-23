@@ -9,6 +9,7 @@ const Categories = () => {
         slug: "",
         description: "",
         image: null as File | null,
+        preview: "" as string, 
     });
     const [editingCategory, setEditingCategory] = useState<any>(null);
     const [loading, setLoading] = useState(false);
@@ -37,68 +38,66 @@ const Categories = () => {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setNewCategory({ ...newCategory, image: e.target.files[0] });
+            const file = e.target.files[0];
+            setNewCategory({
+                ...newCategory,
+                image: file,
+                preview: URL.createObjectURL(file), // 👈 show preview of uploaded file
+            });
         }
     };
 
     const handleAddCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+        e.preventDefault();
+        setError("");
 
-    const formData = new FormData();
-    formData.append("name", newCategory.name);
-    formData.append("slug", newCategory.slug);
-    formData.append("description", newCategory.description);
-    if (newCategory.image) {
-        formData.append("image", newCategory.image);
-    }
-
-    try {
-        if (editingCategory) {
-            console.log("➡️ Sending PUT request to update:", editingCategory._id);
-            await axios.put(`${BASE_API_URL}/categories/${editingCategory._id}`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            console.log("✅ Update request successful");
-            setEditingCategory(null);
-        } else {
-            console.log("➡️ Sending POST request to add new category");
-            await axios.post(`${BASE_API_URL}/categories`, formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            console.log("✅ New category added");
+        const formData = new FormData();
+        formData.append("name", newCategory.name);
+        formData.append("slug", newCategory.slug);
+        formData.append("description", newCategory.description);
+        if (newCategory.image) {
+            formData.append("image", newCategory.image);
         }
-        fetchCategories();
-        setNewCategory({ name: "", slug: "", description: "", image: null });
-    } catch (err) {
-        console.error("🔥 Error saving category:", err);
-        setError("Failed to save category.");
-    }
-};
 
-const handleDeleteCategory = async (id: string) => {
-    try {
-        console.log("➡️ Sending DELETE request for ID:", id);
-        await axios.delete(`${BASE_API_URL}/categories/${id}`);
-        console.log("✅ Delete request successful");
-        fetchCategories();
-    } catch (err) {
-        console.error("🔥 Error deleting category:", err);
-        setError("Failed to delete category.");
-    }
-};
+        try {
+            if (editingCategory) {
+                await axios.put(
+                    `${BASE_API_URL}/categories/${editingCategory._id}`,
+                    formData,
+                    { headers: { "Content-Type": "multipart/form-data" } }
+                );
+                setEditingCategory(null);
+            } else {
+                await axios.post(`${BASE_API_URL}/categories`, formData, {
+                    headers: { "Content-Type": "multipart/form-data" },
+                });
+            }
+            fetchCategories();
+            setNewCategory({ name: "", slug: "", description: "", image: null, preview: "" });
+        } catch (err) {
+            setError("Failed to save category.");
+        }
+    };
 
-const handleEditCategory = (category: any) => {
-    console.log("✏️ Editing category:", category);
-    setEditingCategory(category);
-    setNewCategory({
-        name: category.name,
-        slug: category.slug,
-        description: category.description,
-        image: null,
-    });
-};
+    const handleDeleteCategory = async (id: string) => {
+        try {
+            await axios.delete(`${BASE_API_URL}/categories/${id}`);
+            fetchCategories();
+        } catch (err) {
+            setError("Failed to delete category.");
+        }
+    };
 
+    const handleEditCategory = (category: any) => {
+        setEditingCategory(category);
+        setNewCategory({
+            name: category.name,
+            slug: category.slug,
+            description: category.description,
+            image: null, // keep file null until user uploads new one
+            preview: category.image || "", // 👈 load backend image URL as preview
+        });
+    };
 
     return (
         <div className="p-6">
@@ -144,9 +143,21 @@ const handleEditCategory = (category: any) => {
                 <input
                     type="file"
                     onChange={handleFileChange}
-                    className="border p-2 rounded mb-4 w-full"
+                    className="border p-2 rounded mb-2 w-full"
                     accept="image/*"
                 />
+
+                {/* 👇 Image Preview Box */}
+                {newCategory.preview && (
+                    <div className="mb-4">
+                        <p className="text-sm text-gray-600 mb-1">Preview:</p>
+                        <img
+                            src={newCategory.preview}
+                            alt="Preview"
+                            className="w-32 h-32 object-cover rounded border"
+                        />
+                    </div>
+                )}
 
                 <button
                     type="submit"
@@ -172,7 +183,7 @@ const handleEditCategory = (category: any) => {
                                     <img
                                         src={category.image}
                                         alt={category.name}
-                                        className="w-16 h-16 rounded"
+                                        className="w-16 h-16 rounded object-cover"
                                     />
                                 )}
                                 <div>
