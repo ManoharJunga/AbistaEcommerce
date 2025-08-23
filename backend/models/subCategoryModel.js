@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const subCategorySchema = new mongoose.Schema(
   {
@@ -7,26 +7,38 @@ const subCategorySchema = new mongoose.Schema(
       required: true,
       trim: true,
       minlength: 3,
-      maxlength: 50
+      maxlength: 50,
     },
-    category: {
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    categoryId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Category',
+      ref: "Category",
       required: true,
       validate: {
         validator: function (v) {
           return mongoose.Types.ObjectId.isValid(v);
         },
-        message: "Invalid category ID format"
-      }
+        message: "Invalid category ID format",
+      },
     },
     image: {
-      type: String, // Cloudinary image URL
-      required: true
-    }
+      type: String, // image URL or path
+      default: "",
+    },
+    description: {
+      type: String,
+      trim: true,
+      default: "",
+    },
   },
-  { timestamps: true } 
+  { timestamps: true }
 );
 
-const SubCategory = mongoose.model('SubCategory', subCategorySchema);
+const SubCategory = mongoose.model("SubCategory", subCategorySchema);
 module.exports = SubCategory;

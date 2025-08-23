@@ -3,13 +3,17 @@ import axios from "axios";
 import { BASE_API_URL } from "../../App";
 
 const Categories = () => {
-    const [categories, setCategories] = useState([]);
-    const [newCategory, setNewCategory] = useState({ name: "", image: null });
-    const [editingCategory, setEditingCategory] = useState<any>(null); // To track category being edited
+    const [categories, setCategories] = useState<any[]>([]);
+    const [newCategory, setNewCategory] = useState({
+        name: "",
+        slug: "",
+        description: "",
+        image: null as File | null,
+    });
+    const [editingCategory, setEditingCategory] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
-    // Fetch categories on component load
     useEffect(() => {
         fetchCategories();
     }, []);
@@ -26,7 +30,7 @@ const Categories = () => {
         }
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setNewCategory({ ...newCategory, [name]: value });
     };
@@ -38,48 +42,63 @@ const Categories = () => {
     };
 
     const handleAddCategory = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
+    e.preventDefault();
+    setError("");
 
-        const formData = new FormData();
-        formData.append("name", newCategory.name);
-        if (newCategory.image) {
-            formData.append("image", newCategory.image);
+    const formData = new FormData();
+    formData.append("name", newCategory.name);
+    formData.append("slug", newCategory.slug);
+    formData.append("description", newCategory.description);
+    if (newCategory.image) {
+        formData.append("image", newCategory.image);
+    }
+
+    try {
+        if (editingCategory) {
+            console.log("➡️ Sending PUT request to update:", editingCategory._id);
+            await axios.put(`${BASE_API_URL}/categories/${editingCategory._id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            console.log("✅ Update request successful");
+            setEditingCategory(null);
+        } else {
+            console.log("➡️ Sending POST request to add new category");
+            await axios.post(`${BASE_API_URL}/categories`, formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            console.log("✅ New category added");
         }
+        fetchCategories();
+        setNewCategory({ name: "", slug: "", description: "", image: null });
+    } catch (err) {
+        console.error("🔥 Error saving category:", err);
+        setError("Failed to save category.");
+    }
+};
 
-        try {
-            if (editingCategory) {
-                // Update existing category
-                await axios.put(`${BASE_API_URL}/categories/${editingCategory._id}`, formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
-                });
-                setEditingCategory(null); // Clear the edit mode
-            } else {
-                // Add new category
-                await axios.post(`${BASE_API_URL}/categories`, formData, {
-                    headers: { "Content-Type": "multipart/form-data" },
-                });
-            }
-            fetchCategories(); // Refresh the categories list
-            setNewCategory({ name: "", image: null }); // Reset form
-        } catch (err) {
-            setError("Failed to save category.");
-        }
-    };
+const handleDeleteCategory = async (id: string) => {
+    try {
+        console.log("➡️ Sending DELETE request for ID:", id);
+        await axios.delete(`${BASE_API_URL}/categories/${id}`);
+        console.log("✅ Delete request successful");
+        fetchCategories();
+    } catch (err) {
+        console.error("🔥 Error deleting category:", err);
+        setError("Failed to delete category.");
+    }
+};
 
-    const handleDeleteCategory = async (id: string) => {
-        try {
-            await axios.delete(`${BASE_API_URL}/categories/${id}`);
-            fetchCategories(); // Refresh the categories list
-        } catch (err) {
-            setError("Failed to delete category.");
-        }
-    };
+const handleEditCategory = (category: any) => {
+    console.log("✏️ Editing category:", category);
+    setEditingCategory(category);
+    setNewCategory({
+        name: category.name,
+        slug: category.slug,
+        description: category.description,
+        image: null,
+    });
+};
 
-    const handleEditCategory = (category: any) => {
-        setEditingCategory(category); // Set the category to be edited
-        setNewCategory({ name: category.name, image: null }); // Pre-fill the form with category data
-    };
 
     return (
         <div className="p-6">
@@ -89,7 +108,10 @@ const Categories = () => {
 
             {/* Add or Edit Category Form */}
             <form onSubmit={handleAddCategory} className="bg-white p-4 shadow-md rounded mb-6">
-                <h2 className="text-xl font-semibold mb-2">{editingCategory ? "Edit Category" : "Add New Category"}</h2>
+                <h2 className="text-xl font-semibold mb-2">
+                    {editingCategory ? "Edit Category" : "Add New Category"}
+                </h2>
+
                 <input
                     type="text"
                     name="name"
@@ -99,12 +121,33 @@ const Categories = () => {
                     className="border p-2 rounded mb-4 w-full"
                     required
                 />
+
+                <input
+                    type="text"
+                    name="slug"
+                    value={newCategory.slug}
+                    onChange={handleInputChange}
+                    placeholder="Category Slug (e.g. wooden-doors)"
+                    className="border p-2 rounded mb-4 w-full"
+                    required
+                />
+
+                <textarea
+                    name="description"
+                    value={newCategory.description}
+                    onChange={handleInputChange}
+                    placeholder="Category Description"
+                    className="border p-2 rounded mb-4 w-full"
+                    rows={3}
+                />
+
                 <input
                     type="file"
                     onChange={handleFileChange}
                     className="border p-2 rounded mb-4 w-full"
                     accept="image/*"
                 />
+
                 <button
                     type="submit"
                     className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 w-full"
@@ -132,7 +175,11 @@ const Categories = () => {
                                         className="w-16 h-16 rounded"
                                     />
                                 )}
-                                <span className="font-semibold">{category.name}</span>
+                                <div>
+                                    <p className="font-semibold">{category.name}</p>
+                                    <p className="text-gray-500 text-sm">{category.slug}</p>
+                                    <p className="text-gray-600 text-xs">{category.description}</p>
+                                </div>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <button
@@ -152,7 +199,6 @@ const Categories = () => {
                     ))}
                 </ul>
             )}
-
         </div>
     );
 };
