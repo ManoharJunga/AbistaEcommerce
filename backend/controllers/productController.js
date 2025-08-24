@@ -14,37 +14,59 @@ exports.uploadProductImages = upload.uploadProductImage.array('images', 5); // M
 // Add new product
 exports.addProduct = async (req, res) => {
   try {
-    const { name, description, price, stock, category, subCategory, sizes, attributes, variants } = req.body;
-    
+    let { name, description, price, stock, category, subCategory, categoryId, subCategoryId, sizes, attributes, variants } = req.body;
+
+    // Normalize category fields
+    if (!category && categoryId) category = categoryId;
+    if (!subCategory && subCategoryId) subCategory = subCategoryId;
+
     if (!name || !description || !price || !stock || !category || !subCategory) {
       return res.status(400).json({ message: "All required fields must be filled." });
     }
 
     const images = req.files?.map(file => file.path) || [];
 
-    // Attributes parsing (same as before)...
+    // ✅ Parse attributes correctly
+    let parsedAttributes = {};
+    if (attributes) {
+      if (typeof attributes === "string") {
+        try {
+          parsedAttributes = JSON.parse(attributes);
+        } catch (err) {
+          return res.status(400).json({ message: "Invalid attributes format" });
+        }
+      } else {
+        parsedAttributes = attributes;
+      }
+    }
 
     const product = new Product({
       name,
-      slug: slugify(name, { lower: true, strict: true }), // ✅ generate slug
+      slug: slugify(name, { lower: true, strict: true }),
       description,
       price,
       stock,
       category,
       subCategory,
-      sizes: JSON.parse(sizes || '[]'),
-      attributes: parsedAttributes,
-      variants: JSON.parse(variants || '[]'),
+      sizes: sizes ? JSON.parse(sizes) : [],
+      attributes: {
+        textures: parsedAttributes.selectedTextures || [],
+        finishes: parsedAttributes.selectedFinishes || [],
+        materials: parsedAttributes.selectedMaterials || []
+      },
+      variants: variants ? JSON.parse(variants) : [],
       images
     });
 
     await product.save();
     res.status(201).json({ message: "Product added successfully", product });
+
   } catch (error) {
     console.error("Add product error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 // Get all products with pagination, search, and filtering
 exports.getProducts = async (req, res) => {
