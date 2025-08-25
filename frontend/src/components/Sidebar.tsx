@@ -12,6 +12,7 @@ import {
   Blocks,
   Folder,
   PlayCircle,
+  LetterText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -51,6 +52,13 @@ const menuItems = [
     children: [
       { label: "Category Features", path: "/featurescategories" },
       { label: "SubCategory Features", path: "/featuresSubcategories" },
+    ],
+  },{
+    label: "Company Desc",
+    icon: LetterText, // Parent icon for the group
+    children: [
+      { label: "About Us Page", path: "/about" },
+      {label : "Privacy Policy", path: "/privacy"}
     ],
   },
   {

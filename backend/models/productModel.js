@@ -9,7 +9,7 @@ function arrayLimit(val) {
 const ProductSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    slug: { type: String, unique: true, lowercase: true, trim: true }, // auto-generated
+    slug: { type: String, unique: true, lowercase: true, trim: true },
     description: { type: String, required: true, trim: true },
     price: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0 },
@@ -27,7 +27,6 @@ const ProductSchema = new mongoose.Schema(
       ],
       default: [],
     },
-
 
     attributes: {
       textures: [{ type: mongoose.Schema.Types.ObjectId, ref: "Texture" }],
@@ -52,11 +51,18 @@ const ProductSchema = new mongoose.Schema(
       },
     ],
 
+    specifications: {
+      type: Map,
+      of: String,
+      default: {}
+    },
+
     averageRating: { type: Number, default: 0, min: 0, max: 5 },
     totalReviews: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );
+
 
 // ✅ Generate unique slug before save
 ProductSchema.pre("save", async function (next) {

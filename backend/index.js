@@ -30,7 +30,8 @@ const materialRoutes = require("./routes/materialRoutes");
 const textureRoutes = require("./routes/textureRoutes");
 const featureCategoryRoutes = require("./routes/featureCategoryRoutes");
 const featureSubCategoryRoutes = require("./routes/featureSubCategoryRoutes");
-
+const aboutRoutes = require("./routes/aboutRoutes");
+const privacyPolicyRoutes = require("./routes/privacyPolicyRoutes")
 // Initialize express app
 const app = express();
 
@@ -74,7 +75,9 @@ app.use("/api/finishes", finishRoutes);
 app.use("/api/materials", materialRoutes);
 app.use("/api/textures", textureRoutes);
 app.use("/api/feature-categories", featureCategoryRoutes);
-app.use("/api/subcategory-features", featureSubCategoryRoutes)
+app.use("/api/subcategory-features", featureSubCategoryRoutes);
+app.use("/api/about", aboutRoutes);
+app.use("/api/privacy-policy", privacyPolicyRoutes);
 
 
 // Error Middleware (to handle errors globally)

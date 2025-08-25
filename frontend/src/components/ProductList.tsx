@@ -21,10 +21,15 @@ interface Variant {
     stock?: number;
 }
 
+interface Specification {
+    key: string;
+    value: string;
+}
+
 interface Product {
     _id: string;
     name: string;
-    slug: string;  // ✅ NEW
+    slug: string;
     description: string;
     price: number;
     stock: number;
@@ -36,6 +41,7 @@ interface Product {
         finishes?: { _id: string; name: string }[];
         materials?: { _id: string; name: string }[];
     };
+    specifications?: Specification[];   // ✅ new field
     images: string[];
     variants?: Variant[];
     averageRating: number;
@@ -53,7 +59,7 @@ const ProductList = () => {
     const fetchProducts = () => {
         axios.get('http://localhost:8000/api/products/get')
             .then(response => {
-                setProducts(response.data.products || []); // ✅ safe
+                setProducts(response.data.products || []); 
             })
             .catch(err => console.error('Error fetching products', err));
     };
@@ -89,7 +95,7 @@ const ProductList = () => {
                         <TableRow>
                             <TableCell>Image</TableCell>
                             <TableCell>Name</TableCell>
-                            <TableCell>Slug</TableCell> {/* ✅ New column */}
+                            <TableCell>Slug</TableCell>
                             <TableCell>Description</TableCell>
                             <TableCell>Price</TableCell>
                             <TableCell>Stock</TableCell>
@@ -99,6 +105,7 @@ const ProductList = () => {
                             <TableCell>Finishes</TableCell>
                             <TableCell>Materials</TableCell>
                             <TableCell>Textures</TableCell>
+                            <TableCell>Specifications</TableCell> {/* ✅ NEW */}
                             <TableCell>Variants</TableCell>
                             <TableCell>Rating</TableCell>
                             <TableCell>Reviews</TableCell>
@@ -109,7 +116,7 @@ const ProductList = () => {
                         {products.length > 0 ? (
                             products.map((product) => (
                                 <TableRow key={product._id}>
-                                    {/* First Image */}
+                                    {/* Image */}
                                     <TableCell>
                                         {product.images?.length > 0 ? (
                                             <img
@@ -123,7 +130,7 @@ const ProductList = () => {
                                     </TableCell>
 
                                     <TableCell>{product.name}</TableCell>
-                                    <TableCell>{product.slug}</TableCell> {/* ✅ New */}
+                                    <TableCell>{product.slug}</TableCell>
                                     <TableCell>{product.description}</TableCell>
                                     <TableCell>{product.price}</TableCell>
                                     <TableCell>{product.stock}</TableCell>
@@ -132,7 +139,7 @@ const ProductList = () => {
 
                                     {/* Sizes */}
                                     <TableCell>
-                                        {product.sizes && product.sizes.length > 0 ? (
+                                        {product.sizes?.length ? (
                                             product.sizes.map((s, idx) => (
                                                 <Typography key={idx} variant="body2">
                                                     {s.height}x{s.width} ({s.weight || 0}kg)
@@ -176,9 +183,22 @@ const ProductList = () => {
                                         )}
                                     </TableCell>
 
+                                    {/* ✅ Specifications */}
+                                    <TableCell>
+                                        {product.specifications?.length ? (
+                                            product.specifications.map((spec, idx) => (
+                                                <Typography key={idx} variant="body2">
+                                                    <strong>{spec.key}:</strong> {spec.value}
+                                                </Typography>
+                                            ))
+                                        ) : (
+                                            <Typography variant="body2" color="textSecondary">-</Typography>
+                                        )}
+                                    </TableCell>
+
                                     {/* Variants */}
                                     <TableCell>
-                                        {product.variants && product.variants.length > 0 ? (
+                                        {product.variants?.length ? (
                                             product.variants.map((v, idx) => (
                                                 <Typography key={idx} variant="body2">
                                                     {v.name} - {v.color} ({v.stock || 0})
@@ -201,7 +221,7 @@ const ProductList = () => {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={16} align="center">No Products Available</TableCell>
+                                <TableCell colSpan={17} align="center">No Products Available</TableCell>
                             </TableRow>
                         )}
                     </TableBody>

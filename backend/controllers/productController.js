@@ -11,10 +11,11 @@ const slugify = require("slugify");
 // Middleware for handling image uploads
 exports.uploadProductImages = upload.uploadProductImage.array('images', 5); // Max 5 images for a product
 
-// Add new product
+
+// ✅ Add new product
 exports.addProduct = async (req, res) => {
   try {
-    let { name, description, price, stock, category, subCategory, categoryId, subCategoryId, sizes, attributes, variants } = req.body;
+    let { name, description, price, stock, category, subCategory, categoryId, subCategoryId, sizes, attributes, variants, specifications } = req.body;
 
     // Normalize category fields
     if (!category && categoryId) category = categoryId;
@@ -40,6 +41,20 @@ exports.addProduct = async (req, res) => {
       }
     }
 
+    // ✅ Parse specifications (custom key-value pairs)
+    let parsedSpecifications = {};
+    if (specifications) {
+      if (typeof specifications === "string") {
+        try {
+          parsedSpecifications = JSON.parse(specifications);
+        } catch (err) {
+          return res.status(400).json({ message: "Invalid specifications format" });
+        }
+      } else {
+        parsedSpecifications = specifications;
+      }
+    }
+
     const product = new Product({
       name,
       slug: slugify(name, { lower: true, strict: true }),
@@ -55,7 +70,8 @@ exports.addProduct = async (req, res) => {
         materials: parsedAttributes.selectedMaterials || []
       },
       variants: variants ? JSON.parse(variants) : [],
-      images
+      images,
+      specifications: parsedSpecifications // ✅ Save specifications
     });
 
     await product.save();
@@ -66,7 +82,6 @@ exports.addProduct = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 // Get all products with pagination, search, and filtering
 exports.getProducts = async (req, res) => {
@@ -100,8 +115,6 @@ exports.getProducts = async (req, res) => {
   }
 };
 
-
-// Get product by ID
 // Get product by ID
 exports.getProductById = async (req, res) => {
   try {
@@ -130,9 +143,9 @@ exports.getProductById = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;  // ✅ use "id" instead of productId
+    const { id } = req.params;  
 
-    // ✅ Validate Product ID
+    // Validate Product ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "Invalid Product ID" });
     }
@@ -145,6 +158,15 @@ exports.updateProduct = async (req, res) => {
         updateData.attributes = JSON.parse(updateData.attributes);
       } catch {
         return res.status(400).json({ message: "Invalid attributes format" });
+      }
+    }
+
+    // ✅ Parse specifications if sent as JSON string
+    if (updateData.specifications && typeof updateData.specifications === "string") {
+      try {
+        updateData.specifications = JSON.parse(updateData.specifications);
+      } catch {
+        return res.status(400).json({ message: "Invalid specifications format" });
       }
     }
 
@@ -163,7 +185,6 @@ exports.updateProduct = async (req, res) => {
       updateData.images = req.files.map(file => file.path);
     }
 
-    // ✅ Update product
     const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!updatedProduct) {
@@ -179,7 +200,6 @@ exports.updateProduct = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
-
 
 // Delete product
 exports.deleteProduct = async (req, res) => {
@@ -204,8 +224,6 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-
-
 // Get Featured Products (Random 10)
 exports.getFeaturedProducts = async (req, res) => {
   try {
@@ -225,8 +243,6 @@ exports.getBestSellingProducts = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
-
-
 
 exports.getProductsBySubcategory = async (req, res) => {
   try {
@@ -249,7 +265,6 @@ exports.getProductsBySubcategory = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
-
 
 exports.getProductBySlug = async (req, res) => {
   try {

@@ -18,6 +18,8 @@ import MaterialPage from "./pages/Texture/MaterialPage";
 import FinishPage from "./pages/Texture/FinishPage"
 import FeatureCategoryManager from "./pages/Features/FeatureCategoryManager";
 import SubCategoryFeatureManager from "./pages/Features/SubCategoryFeatureManager";
+import AboutPage from "./pages/details/about";
+import PrivacyPolicyForm from "./pages/details/privacyPolicy";
 
 
 export const BASE_API_URL = 'http://localhost:8000/api';
@@ -45,6 +47,8 @@ const App = () => {
              <Route path="/finishes" element={<FinishPage />} />
              <Route path="/featurescategories" element={<FeatureCategoryManager />} />
              <Route path="/featuresSubcategories" element={<SubCategoryFeatureManager />} />
+             <Route path="/about" element={<AboutPage />} />
+             <Route path="/privacy" element={<PrivacyPolicyForm />} />
           </Routes>
         </div>
       </div>
