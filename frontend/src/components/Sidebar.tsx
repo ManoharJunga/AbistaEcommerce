@@ -36,6 +36,7 @@ const menuItems = [
       { label: "Categories", path: "/products/categories" },
       { label: "Subcategories", path: "/products/subcategories" },
       { label: "Product Ratings", path: "/products/ratings" },
+      {label: "Deal of the day", path:"dealoftheday"}
     ],
   },
   {
@@ -58,7 +59,8 @@ const menuItems = [
     icon: LetterText, // Parent icon for the group
     children: [
       { label: "About Us Page", path: "/about" },
-      {label : "Privacy Policy", path: "/privacy"}
+      {label : "Privacy Policy", path: "/privacy"},
+      {label: "Terms of Service", path: "/terms"},
     ],
   },
   {

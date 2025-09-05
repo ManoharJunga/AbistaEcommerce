@@ -20,6 +20,8 @@ import FeatureCategoryManager from "./pages/Features/FeatureCategoryManager";
 import SubCategoryFeatureManager from "./pages/Features/SubCategoryFeatureManager";
 import AboutPage from "./pages/details/about";
 import PrivacyPolicyForm from "./pages/details/privacyPolicy";
+import TermsPage from "./pages/details/TermsPage";
+import DealOfTheDay from "./pages/Products/DealOfTheDay";
 
 
 export const BASE_API_URL = 'http://localhost:8000/api';
@@ -49,6 +51,8 @@ const App = () => {
              <Route path="/featuresSubcategories" element={<SubCategoryFeatureManager />} />
              <Route path="/about" element={<AboutPage />} />
              <Route path="/privacy" element={<PrivacyPolicyForm />} />
+             <Route path="/terms" element={<TermsPage />} />
+             <Route path="/dealoftheday" element={<DealOfTheDay />} />
           </Routes>
         </div>
       </div>
