@@ -1,5 +1,4 @@
 // src/pages/Products/ProductRating.tsx
-import React from "react";
 
 const ProductRating = () => {
   return (

@@ -34,6 +34,9 @@ const aboutRoutes = require("./routes/aboutRoutes");
 const privacyPolicyRoutes = require("./routes/privacyPolicyRoutes");
 const termsRoutes = require("./routes/termsOfServiceRoutes");
 const dealProductRoutes = require("./routes/dealProductRoutes");
+const faqRoutes = require("./routes/faqRoutes");
+const authRoutes = require("./routes/authRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 
 // Initialize express app
 const app = express();
@@ -46,10 +49,12 @@ app.use(express.json());
 
 // Enable CORS
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow multiple origins
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // allowed frontend URLs
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true   // 👈 important!
 }));
+
 
   
 // Connect to MongoDB
@@ -83,6 +88,11 @@ app.use("/api/about", aboutRoutes);
 app.use("/api/privacy-policy", privacyPolicyRoutes);
 app.use("/api/terms-of-service", termsRoutes);
 app.use("/api/deals", dealProductRoutes);
+app.use("/api/faqs", faqRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/cart", cartRoutes);
+
+
 
 
 // Error Middleware (to handle errors globally)

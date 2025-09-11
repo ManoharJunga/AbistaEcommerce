@@ -22,6 +22,8 @@ import AboutPage from "./pages/details/about";
 import PrivacyPolicyForm from "./pages/details/privacyPolicy";
 import TermsPage from "./pages/details/TermsPage";
 import DealOfTheDay from "./pages/Products/DealOfTheDay";
+import Bulkentries from "./pages/Products/Bulkentries";
+import FaqEntryPage from "./pages/details/FaqEntryPage";
 
 
 export const BASE_API_URL = 'http://localhost:8000/api';
@@ -30,32 +32,37 @@ const App = () => {
     <Router>
       <div className="flex">
         <Sidebar />
-        <div className="flex-1 bg-gray-100 p-4">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/products/categories" element={<Categories />} />
-            <Route path="/products/subcategories" element={<Subcategories />} />
-            <Route path="/products/ratings" element={<ProductRating />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/projects" element={<ProjectsPage />} />
-            <Route path="/projects/add" element={<AddProjectPage />} />
-            <Route path="/slideshow" element={<SlideshowPage />} />
-            <Route path="/slideshow/add" element={<AddSlideshowPage />} />
-            <Route path="/card-management" element={<CardManagementPage />} />
-            <Route path="/textures" element={<TexturePage />} />
-            <Route path="/material" element={<MaterialPage />} />
-             <Route path="/finishes" element={<FinishPage />} />
-             <Route path="/featurescategories" element={<FeatureCategoryManager />} />
-             <Route path="/featuresSubcategories" element={<SubCategoryFeatureManager />} />
-             <Route path="/about" element={<AboutPage />} />
-             <Route path="/privacy" element={<PrivacyPolicyForm />} />
-             <Route path="/terms" element={<TermsPage />} />
-             <Route path="/dealoftheday" element={<DealOfTheDay />} />
-          </Routes>
+        <div className="flex-1 bg-gray-100 p-4 flex justify-center">
+          <div className="w-full max-w-6xl"> {/* limit width */}
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/products/categories" element={<Categories />} />
+              <Route path="/products/subcategories" element={<Subcategories />} />
+              <Route path="/products/ratings" element={<ProductRating />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/projects" element={<ProjectsPage />} />
+              <Route path="/projects/add" element={<AddProjectPage />} />
+              <Route path="/slideshow" element={<SlideshowPage />} />
+              <Route path="/slideshow/add" element={<AddSlideshowPage />} />
+              <Route path="/card-management" element={<CardManagementPage />} />
+              <Route path="/textures" element={<TexturePage />} />
+              <Route path="/material" element={<MaterialPage />} />
+              <Route path="/finishes" element={<FinishPage />} />
+              <Route path="/featurescategories" element={<FeatureCategoryManager />} />
+              <Route path="/featuresSubcategories" element={<SubCategoryFeatureManager />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyForm />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/dealoftheday" element={<DealOfTheDay />} />
+              <Route path="bulkproducts" element={<Bulkentries />} />
+              <Route path="faqpage" element={<FaqEntryPage />} />
+            </Routes>
+          </div>
         </div>
       </div>
+
     </Router>
   );
 };

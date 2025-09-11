@@ -1,47 +1,73 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
-// Define Activity Schema for tracking customer insights
-const ActivitySchema = new mongoose.Schema({
-    page: { type: String, required: true }, // e.g., '/product/:id'
-    clicks: { type: Number, default: 0 }, // Number of clicks on the page
-    timeSpent: { type: Number, default: 0 }, // Time spent on the page in seconds
-    timestamp: { type: Date, default: Date.now }, // When the activity occurred
+const customerSchema = new mongoose.Schema(
+  {
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+    },
+    phone: {
+      type: String,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+    },
+    dateOfBirth: {
+      type: Date,
+    },
+    addresses: [
+      {
+        label: { type: String }, // e.g., "Home", "Office"
+        street: { type: String },
+        city: { type: String },
+        state: { type: String },
+        postalCode: { type: String },
+        country: { type: String, default: "India" },
+      },
+    ],
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    role: {
+      type: String,
+      enum: ["customer", "admin"],
+      default: "customer",
+    },
+    profileImage: {
+      type: String, // URL to cloud storage
+    },
+  },
+  { timestamps: true }
+);
+
+// Hash password before saving
+customerSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  this.password = await bcrypt.hash(this.password, 10);
+  next();
 });
 
-// Define Customer Schema
-const CustomerSchema = new mongoose.Schema({
-    fullName: { type: String, required: true },
-    email: { type: String, required: true, unique: true, match: /.+\@.+\..+/ }, // Basic email regex
-    emailVerified: { type: Boolean, default: false },
-    phoneNumber: { type: String, required: true, unique: true, match: /^[0-9]{10}$/ }, // 10-digit phone number
-    phoneVerified: { type: Boolean, default: false },
-    profilePicture: { type: String }, // URL to the profile picture
-    addresses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Address' }],
-    orderHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Wishlist' }],
-    paymentMethods: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PaymentMethod' }],
-    notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Notification' }],
-    recentlyViewedItems: [{ type: mongoose.Schema.Types.ObjectId, ref: 'RecentlyViewed' }],
-    password: { type: String, required: true }, // Hashed password
-    twoFactorAuthEnabled: { type: Boolean, default: false }, // 2FA toggle
-    isActive: { type: Boolean, default: true }, // For soft delete
-    activityLogs: [ActivitySchema], // Embedded activity logs
-}, {
-    timestamps: true, // Automatically adds createdAt and updatedAt fields
-});
-
-// Middleware for password hashing
-CustomerSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) return next();
-    this.password = await bcrypt.hash(this.password, 10); // Hash password with salt rounds of 10
-    next();
-});
-
-// Instance method for password comparison
-CustomerSchema.methods.comparePassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password); // Compare entered password with hashed password
+// Compare password method
+customerSchema.methods.matchPassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// Export the model
-module.exports = mongoose.model('Customer', CustomerSchema);
+const Customer = mongoose.model("Customer", customerSchema);
+
+module.exports = Customer;

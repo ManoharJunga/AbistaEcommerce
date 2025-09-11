@@ -33,10 +33,11 @@ const menuItems = [
     icon: ShoppingBag,
     children: [
       { label: "Product", path: "/products" },
+      { label: "Bulk Entry", path: "/bulkproducts" },
       { label: "Categories", path: "/products/categories" },
       { label: "Subcategories", path: "/products/subcategories" },
       { label: "Product Ratings", path: "/products/ratings" },
-      {label: "Deal of the day", path:"dealoftheday"}
+      { label: "Deal of the day", path: "dealoftheday" }
     ],
   },
   {
@@ -47,20 +48,21 @@ const menuItems = [
       { label: "Material", path: "/material" },
       { label: "Finishes", path: "/finishes" },
     ],
-  },{
+  }, {
     label: "Features",
     icon: Blocks, // Parent icon for the group
     children: [
       { label: "Category Features", path: "/featurescategories" },
       { label: "SubCategory Features", path: "/featuresSubcategories" },
     ],
-  },{
+  }, {
     label: "Company Desc",
     icon: LetterText, // Parent icon for the group
     children: [
       { label: "About Us Page", path: "/about" },
-      {label : "Privacy Policy", path: "/privacy"},
-      {label: "Terms of Service", path: "/terms"},
+      { label: "Privacy Policy", path: "/privacy" },
+      { label: "FAQ Entry", path: "/faqpage" },
+      { label: "Terms of Service", path: "/terms" },
     ],
   },
   {
@@ -102,9 +104,8 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`bg-gray-900 text-gray-100 h-screen flex flex-col transition-all duration-300 ${
-        isOpen ? "w-64" : "w-20"
-      }`}
+      className={`bg-gray-900 text-gray-100 h-screen flex flex-col transition-all duration-300 ${isOpen ? "w-64" : "w-20"
+        }`}
     >
       {/* Toggle Button */}
       <div className="flex justify-end p-3">
