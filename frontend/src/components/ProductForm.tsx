@@ -1,4 +1,4 @@
-// ProductForm.tsx (Redesigned)
+// ProductForm.tsx (Final Fixed Version)
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import {
@@ -18,6 +18,8 @@ import {
 } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 
+/* ------------------ TYPES ------------------ */
+
 interface Product {
   _id: string;
   name: string;
@@ -29,9 +31,9 @@ interface Product {
   subCategoryId: string;
   images: string[];
   attributes?: {
-    textures?: string[];
-    finishes?: string[];
-    materials?: string[];
+    textures?: any[];
+    finishes?: any[];
+    materials?: any[];
   };
   specifications?: Record<string, string>;
 }
@@ -47,7 +49,8 @@ interface ProductFormProps {
   setEditingProduct: React.Dispatch<React.SetStateAction<Product | null>>;
 }
 
-/** 🔹 Reusable MultiSelect Component */
+/* ------------------ SAFE MULTISELECT ------------------ */
+
 const MultiSelect: React.FC<{
   label: string;
   options: Option[];
@@ -59,12 +62,15 @@ const MultiSelect: React.FC<{
     <Select
       multiple
       value={value}
-      onChange={(e) => setValue(e.target.value as string[])}
+      label={label}
+      onChange={(e) =>
+        setValue((e.target.value as any[]).map((v) => (typeof v === "string" ? v : v._id)))
+      }
       renderValue={(selected) => (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-          {(selected as string[]).map((val) => {
-            const opt = options.find((o) => o._id === val);
-            return <Chip key={val} label={opt?.name || val} />;
+          {(selected as string[]).map((id) => {
+            const item = options.find((o) => o._id === id);
+            return <Chip key={id} label={item?.name || "Unknown"} />;
           })}
         </Box>
       )}
@@ -77,6 +83,8 @@ const MultiSelect: React.FC<{
     </Select>
   </FormControl>
 );
+
+/* ------------------ MAIN FORM ------------------ */
 
 const ProductForm: React.FC<ProductFormProps> = ({
   fetchProducts,
@@ -104,7 +112,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const [specifications, setSpecifications] = useState<{ key: string; value: string }[]>([]);
 
-  /** 🔹 Fetch dropdown data */
+  /* ---------------- FETCH DROPDOWNS ---------------- */
+
   useEffect(() => {
     axios.get("http://localhost:8000/api/categories").then((res) => setCategories(res.data));
     axios.get("http://localhost:8000/api/finishes").then((res) => setFinishes(res.data));
@@ -117,271 +126,214 @@ const ProductForm: React.FC<ProductFormProps> = ({
       axios
         .get(`http://localhost:8000/api/subcategories?categoryId=${categoryId}`)
         .then((res) => setSubCategories(res.data));
-    } else {
-      setSubCategories([]);
     }
   }, [categoryId]);
 
-  /** 🔹 Pre-fill form when editing */
+  /* ---------------- PREFILL EDIT DATA ---------------- */
+
   useEffect(() => {
-    if (editingProduct) {
-      setName(editingProduct.name || "");
-      setSlug(editingProduct.slug || "");
-      setDescription(editingProduct.description || "");
-      setPrice(editingProduct.price?.toString() || "");
-      setStock(editingProduct.stock?.toString() || "");
-      setCategoryId(editingProduct.categoryId || "");
-      setSubCategoryId(editingProduct.subCategoryId || "");
+    if (!editingProduct) return;
 
-      setSelectedFinishes(editingProduct.attributes?.finishes || []);
-      setSelectedMaterials(editingProduct.attributes?.materials || []);
-      setSelectedTextures(editingProduct.attributes?.textures || []);
+    setName(editingProduct.name);
+    setSlug(editingProduct.slug);
+    setDescription(editingProduct.description);
+    setPrice(String(editingProduct.price));
+    setStock(String(editingProduct.stock));
+    setCategoryId(editingProduct.categoryId);
+    setSubCategoryId(editingProduct.subCategoryId);
 
-      const existingFiles =
-        editingProduct.images?.map(
-          (img) =>
-            ({
-              name: img,
-              size: 0,
-              type: "image/jpeg",
-            } as File)
-        ) || [];
-      setUploadedFiles(existingFiles);
+    setSelectedFinishes(editingProduct.attributes?.finishes?.map((f: any) => f._id) || []);
+    setSelectedMaterials(editingProduct.attributes?.materials?.map((m: any) => m._id) || []);
+    setSelectedTextures(editingProduct.attributes?.textures?.map((t: any) => t._id) || []);
 
-      const specsArray = editingProduct.specifications
-        ? Object.entries(editingProduct.specifications).map(([key, value]) => ({
-            key,
-            value: String(value),
-          }))
-        : [];
-      setSpecifications(specsArray);
-    } else {
-      setName("");
-      setSlug("");
-      setDescription("");
-      setPrice("");
-      setStock("");
-      setCategoryId("");
-      setSubCategoryId("");
-      setSelectedFinishes([]);
-      setSelectedMaterials([]);
-      setSelectedTextures([]);
-      setUploadedFiles([]);
-      setSpecifications([]);
-    }
+    setUploadedFiles(
+      editingProduct.images.map(
+        (img) =>
+        ({
+          name: img,
+          size: 0,
+          type: "image/jpeg",
+        } as File)
+      )
+    );
+
+    const specs = editingProduct.specifications
+      ? Object.entries(editingProduct.specifications).map(([k, v]) => ({
+        key: k,
+        value: String(v),
+      }))
+      : [];
+    setSpecifications(specs);
   }, [editingProduct]);
 
-  /** 🔹 Image Dropzone */
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    setUploadedFiles((prev) => [...prev, ...acceptedFiles]);
+  /* ---------------- DROPZONE ---------------- */
+
+  const onDrop = useCallback((files: File[]) => {
+    setUploadedFiles((prev) => [...prev, ...files]);
   }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
-  /** 🔹 Handle Specification Changes */
-  const handleSpecChange = (index: number, field: "key" | "value", val: string) => {
-    setSpecifications((prev) =>
-      prev.map((spec, i) => (i === index ? { ...spec, [field]: val } : spec))
-    );
+  /* ---------------- SPEC HANDLERS ---------------- */
+
+  const handleSpecChange = (i: number, field: "key" | "value", val: string) => {
+    setSpecifications((prev) => prev.map((s, idx) => (idx === i ? { ...s, [field]: val } : s)));
   };
 
   const addSpecification = () => setSpecifications((prev) => [...prev, { key: "", value: "" }]);
-  const removeSpecification = (index: number) =>
-    setSpecifications((prev) => prev.filter((_, i) => i !== index));
+  const removeSpecification = (i: number) =>
+    setSpecifications((prev) => prev.filter((_, idx) => idx !== i));
 
-  /** 🔹 Submit handler */
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleRemoveImage = (i: number) =>
+    setUploadedFiles((prev) => prev.filter((_, idx) => idx !== i));
+
+  /* ---------------- SUBMIT ---------------- */
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const specsObj: Record<string, string> = {};
+
+    const specObj: Record<string, string> = {};
     specifications.forEach((s) => {
-      if (s.key.trim()) specsObj[s.key] = s.value;
+      if (s.key.trim()) specObj[s.key] = s.value;
     });
 
-    // update product
-    if (editingProduct) {
-      const productData = {
-        name,
-        slug,
-        description,
-        price: Number(price),
-        stock: Number(stock),
-        categoryId,
-        subCategoryId,
-        attributes: {
-          textures: selectedTextures,
-          finishes: selectedFinishes,
-          materials: selectedMaterials,
-        },
-        specifications: specsObj,
-        images: uploadedFiles.map((file) =>
-          file instanceof File ? URL.createObjectURL(file) : (file as any).name
-        ),
-      };
-
-      axios
-        .put(`http://localhost:8000/api/products/${editingProduct._id}`, productData, {
-          headers: { "Content-Type": "application/json" },
-        })
-        .then(() => {
-          alert("Product updated successfully");
-          setEditingProduct(null);
-          fetchProducts();
-        })
-        .catch((error) => console.error("❌ Error:", error));
-      return;
-    }
-
-    // create new product
     const formData = new FormData();
     formData.append("name", name);
     formData.append("slug", slug);
     formData.append("description", description);
-    formData.append("price", price.toString());
-    formData.append("stock", stock.toString());
+    formData.append("price", price);
+    formData.append("stock", stock);
     formData.append("categoryId", categoryId);
     formData.append("subCategoryId", subCategoryId);
     formData.append(
       "attributes",
-      JSON.stringify({ textures: selectedTextures, finishes: selectedFinishes, materials: selectedMaterials })
+      JSON.stringify({
+        textures: selectedTextures,
+        finishes: selectedFinishes,
+        materials: selectedMaterials,
+      })
     );
-    formData.append("specifications", JSON.stringify(specsObj));
+    formData.append("specifications", JSON.stringify(specObj));
 
+    // ✅ IMPORTANT — APPEND ALL FILES CORRECTLY
     uploadedFiles.forEach((file) => {
       if (file instanceof File) {
-        formData.append("images", file);
+        formData.append("images", file);   // multiple allowed
       }
     });
 
-    axios
-      .post("http://localhost:8000/api/products/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then(() => {
-        alert("Product uploaded successfully");
-        fetchProducts();
-      })
-      .catch((error) => console.error("❌ Error:", error));
+    try {
+      if (editingProduct) {
+        await axios.put(
+          `http://localhost:8000/api/products/${editingProduct._id}`,
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        alert("✅ Product Updated");
+      } else {
+        await axios.post(
+          "http://localhost:8000/api/products/upload",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        alert("✅ Product Created");
+      }
+
+      setEditingProduct(null);
+      fetchProducts();
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      alert("❌ Image upload or save failed");
+    }
   };
 
-  const handleRemoveImage = (index: number) => {
-    setUploadedFiles((prev) => prev.filter((_, i) => i !== index));
+
+  const resetForm = () => {
+    setName(""); setSlug(""); setDescription("");
+    setPrice(""); setStock(""); setCategoryId("");
+    setSubCategoryId(""); setUploadedFiles([]);
+    setSelectedTextures([]); setSelectedFinishes([]);
+    setSelectedMaterials([]); setSpecifications([]);
   };
+
+  /* ---------------- RENDER ---------------- */
 
   return (
-    <Paper elevation={4} sx={{ p: 3, mt: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        {editingProduct ? "✏️ Edit Product" : "➕ Create New Product"}
-      </Typography>
-
+    <Paper sx={{ p: 3, mt: 3 }}>
+      <Typography variant="h5">{editingProduct ? "✏️ Edit Product" : "➕ Add Product"}</Typography>
       <Divider sx={{ my: 2 }} />
 
       <form onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          {/* Product Info */}
+        <Grid container spacing={2}>
+
+          <Grid item xs={3}><TextField fullWidth label="Name" size="small" value={name} onChange={(e) => setName(e.target.value)} /></Grid>
+          <Grid item xs={3}><TextField fullWidth label="Slug" size="small" value={slug} onChange={(e) => setSlug(e.target.value)} /></Grid>
+          <Grid item xs={3}><TextField fullWidth label="Price" size="small" type="number" value={price} onChange={(e) => setPrice(e.target.value)} /></Grid>
+          <Grid item xs={3}><TextField fullWidth label="Stock" size="small" type="number" value={stock} onChange={(e) => setStock(e.target.value)} /></Grid>
+
           <Grid item xs={12}>
-            <Typography variant="h6">📦 Product Info</Typography>
-            <Divider sx={{ my: 1 }} />
+            <TextField fullWidth multiline rows={3} size="small" label="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
           </Grid>
 
-          <Grid item xs={6} sm={3}>
-            <TextField label="Name" size="small" fullWidth required value={name} onChange={(e) => setName(e.target.value)} />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <TextField label="Slug" size="small" fullWidth required value={slug} onChange={(e) => setSlug(e.target.value)} />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <TextField label="Price" size="small" type="number" fullWidth required value={price} onChange={(e) => setPrice(e.target.value)} />
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <TextField label="Stock" size="small" type="number" fullWidth required value={stock} onChange={(e) => setStock(e.target.value)} />
-          </Grid>
-          <Grid item xs={12}>
-            <TextField label="Description" size="small" fullWidth multiline rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </Grid>
-
-          {/* Categories */}
-          <Grid item xs={12}>
-            <Typography variant="h6">📂 Category</Typography>
-            <Divider sx={{ my: 1 }} />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField select size="small" label="Category" fullWidth required value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-              {categories.map((cat) => (
-                <MenuItem key={cat._id} value={cat._id}>{cat.name}</MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField select size="small" label="SubCategory" fullWidth required value={subCategoryId} onChange={(e) => setSubCategoryId(e.target.value)}>
-              {subCategories.map((sub) => (
-                <MenuItem key={sub._id} value={sub._id}>{sub.name}</MenuItem>
-              ))}
+          <Grid item xs={6}>
+            <TextField select size="small" label="Category" fullWidth value={categoryId || ""} onChange={(e) => setCategoryId(e.target.value)}>
+              {categories.map((c) => <MenuItem key={c._id} value={c._id}>{c.name}</MenuItem>)}
             </TextField>
           </Grid>
 
-          {/* Attributes */}
-          <Grid item xs={12}>
-            <Typography variant="h6">🎨 Attributes</Typography>
-            <Divider sx={{ my: 1 }} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <MultiSelect label="Textures" options={textures} value={selectedTextures} setValue={setSelectedTextures} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <MultiSelect label="Finishes" options={finishes} value={selectedFinishes} setValue={setSelectedFinishes} />
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <MultiSelect label="Materials" options={materials} value={selectedMaterials} setValue={setSelectedMaterials} />
+          <Grid item xs={6}>
+            <TextField select size="small" label="Sub Category" fullWidth value={subCategoryId} onChange={(e) => setSubCategoryId(e.target.value)}>
+              {subCategories.map((s) => <MenuItem key={s._id} value={s._id}>{s.name}</MenuItem>)}
+            </TextField>
           </Grid>
 
-          {/* Specifications */}
+          <Grid item xs={4}><MultiSelect label="Textures" options={textures} value={selectedTextures} setValue={setSelectedTextures} /></Grid>
+          <Grid item xs={4}><MultiSelect label="Finishes" options={finishes} value={selectedFinishes} setValue={setSelectedFinishes} /></Grid>
+          <Grid item xs={4}><MultiSelect label="Materials" options={materials} value={selectedMaterials} setValue={setSelectedMaterials} /></Grid>
+
           <Grid item xs={12}>
-            <Typography variant="h6">⚙️ Specifications</Typography>
-            <Divider sx={{ my: 1 }} />
-            {specifications.map((spec, index) => (
-              <Grid container spacing={2} key={index} sx={{ mb: 1 }}>
-                <Grid item xs={5}>
-                  <TextField label="Key" size="small" fullWidth value={spec.key} onChange={(e) => handleSpecChange(index, "key", e.target.value)} />
-                </Grid>
-                <Grid item xs={5}>
-                  <TextField label="Value" size="small" fullWidth value={spec.value} onChange={(e) => handleSpecChange(index, "value", e.target.value)} />
-                </Grid>
-                <Grid item xs={2}>
-                  <Button color="error" onClick={() => removeSpecification(index)}>Remove</Button>
-                </Grid>
+            <Typography variant="h6">Specifications</Typography>
+            {specifications.map((s, i) => (
+              <Grid container spacing={1} key={`${s.key}-${i}`}>
+                <Grid item xs={5}><TextField value={s.key} size="small" onChange={(e) => handleSpecChange(i, "key", e.target.value)} label="Key" fullWidth /></Grid>
+                <Grid item xs={5}><TextField value={s.value} size="small" onChange={(e) => handleSpecChange(i, "value", e.target.value)} label="Value" fullWidth /></Grid>
+                <Grid item xs={2}><Button color="error" onClick={() => removeSpecification(i)}>Remove</Button></Grid>
               </Grid>
             ))}
-            <Button onClick={addSpecification} variant="outlined" sx={{ mt: 1 }}>
-              + Add Specification
-            </Button>
+            <Button onClick={addSpecification}>+ Add</Button>
           </Grid>
 
-          {/* Images */}
           <Grid item xs={12}>
-            <Typography variant="h6">🖼️ Images</Typography>
-            <Divider sx={{ my: 1 }} />
-            <Box {...getRootProps()} sx={{ border: "1px dashed gray", p: 2, textAlign: "center", borderRadius: 2, bgcolor: "grey.50" }}>
+            <Box {...getRootProps()} sx={{ border: "1px dashed #aaa", p: 2, textAlign: "center" }}>
               <input {...getInputProps()} />
-              {isDragActive ? <Typography>Drop files here ...</Typography> : <Typography>Drag & drop or click to upload</Typography>}
+              <Typography>{isDragActive ? "Drop images" : "Upload images"}</Typography>
             </Box>
-            {uploadedFiles.length > 0 && (
-              <Box mt={2}>
-                {uploadedFiles.map((file, index) => (
-                  <Box key={file.name} display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-                    <Avatar src={file instanceof File ? URL.createObjectURL(file) : file.name} alt={file.name} sx={{ width: 40, height: 40, mr: 1 }} />
-                    <Typography variant="body2">{file.name}</Typography>
-                    <Button onClick={() => handleRemoveImage(index)} color="error" size="small">Remove</Button>
-                  </Box>
-                ))}
+
+            {uploadedFiles.map((f, i) => (
+              <Box key={`${f.name}-${i}`} display="flex" alignItems="center">
+                <Avatar
+                  src={f instanceof File ? URL.createObjectURL(f) : (f as any).name}
+                  sx={{ mr: 1 }}
+                />
+                <Typography>{f.name}</Typography>
+                <Button color="error" onClick={() => handleRemoveImage(i)}>Remove</Button>
               </Box>
+            ))}
+
+          </Grid>
+
+          <Grid item xs={12}>
+            <Button fullWidth type="submit" variant="contained">
+              {editingProduct ? "Update Product" : "Create Product"}
+            </Button>
+            {editingProduct && (
+              <Button color="error" fullWidth sx={{ mt: 1 }} onClick={resetForm}>
+                Cancel Edit
+              </Button>
             )}
           </Grid>
 
-          {/* Submit */}
-          <Grid item xs={12}>
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-              {editingProduct ? "Update Product" : "Upload Product"}
-            </Button>
-          </Grid>
         </Grid>
       </form>
     </Paper>

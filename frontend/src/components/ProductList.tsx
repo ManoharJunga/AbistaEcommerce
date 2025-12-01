@@ -1,5 +1,5 @@
 // ProductList.tsx
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Container,
@@ -66,40 +66,46 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
-  const fetchProducts = () => {
-    axios
-      .get("http://localhost:8000/api/products/get")
-      .then((response) => {
-        setProducts(response.data.products || []);
-      })
-      .catch((err) => console.error("Error fetching products", err));
+  // ✅ Fetch products
+  const fetchProducts = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/api/products/get");
+      setProducts(response.data.products || []);
+    } catch (error) {
+      console.error("Error fetching products", error);
+    }
   };
 
+  // ✅ Edit
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
+    window.scrollTo({ top: 0, behavior: "smooth" }); // UX improvement
   };
 
-  const handleDelete = (id: string) => {
-    axios
-      .delete(`http://localhost:8000/api/products/${id}`)
-      .then(() => {
-        alert("Product deleted successfully");
-        fetchProducts();
-      })
-      .catch((err) => {
-        console.error("Error deleting product", err);
-        alert("Error deleting product");
-      });
+  // ✅ Delete
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+
+    try {
+      await axios.delete(`http://localhost:8000/api/products/${id}`);
+      alert("Product deleted successfully");
+      fetchProducts();
+    } catch (error) {
+      console.error("Error deleting product", error);
+      alert("Failed to delete product");
+    }
   };
 
   return (
     <Container maxWidth="lg">
-      {/* Form at top */}
+      {/* ✅ Product Form */}
       <ProductForm
         fetchProducts={fetchProducts}
         editingProduct={editingProduct}
         setEditingProduct={setEditingProduct}
       />
+
+      {/* ✅ Product Table */}
       <TableContainer component={Paper} sx={{ mt: 4 }}>
         <Table stickyHeader>
           <TableHead>
@@ -118,13 +124,13 @@ const ProductList = () => {
               <TableCell>More</TableCell>
             </TableRow>
           </TableHead>
+
           <TableBody>
             {products.length > 0 ? (
               products.map((product) => (
-                <>
-                  {/* Main row */}
+                <React.Fragment key={product._id}>
+                  {/* ✅ MAIN ROW */}
                   <TableRow
-                    key={product._id}
                     sx={{
                       "&:nth-of-type(odd)": { backgroundColor: "#fafafa" },
                       "&:hover": { backgroundColor: "#f5f5f5" },
@@ -148,36 +154,41 @@ const ProductList = () => {
                         </Typography>
                       )}
                     </TableCell>
+
                     <TableCell>
-                      <Typography variant="subtitle2">{product.name}</Typography>
+                      <Typography fontWeight={600}>
+                        {product.name}
+                      </Typography>
                     </TableCell>
+
                     <TableCell>{product.slug}</TableCell>
+
                     <TableCell>
                       <Tooltip title={product.description} arrow>
-                        <Typography
-                          noWrap
-                          sx={{ maxWidth: 150 }}
-                          variant="body2"
-                          color="textSecondary"
-                        >
+                        <Typography noWrap sx={{ maxWidth: 150 }} variant="body2">
                           {product.description}
                         </Typography>
                       </Tooltip>
                     </TableCell>
+
                     <TableCell>₹{product.price}</TableCell>
                     <TableCell>{product.stock}</TableCell>
                     <TableCell>{product.category?.name || "-"}</TableCell>
                     <TableCell>{product.subCategory?.name || "-"}</TableCell>
-                    <TableCell>{product.averageRating}</TableCell>
+                    <TableCell>{product.averageRating.toFixed(1)}</TableCell>
                     <TableCell>{product.totalReviews}</TableCell>
+
+                    {/* ✅ ACTION BUTTONS */}
                     <TableCell>
-                      <IconButton onClick={() => handleEdit(product)}>
+                      <IconButton onClick={() => handleEdit(product)} color="primary">
                         <Edit />
                       </IconButton>
-                      <IconButton onClick={() => handleDelete(product._id)}>
+                      <IconButton onClick={() => handleDelete(product._id)} color="error">
                         <Delete />
                       </IconButton>
                     </TableCell>
+
+                    {/* ✅ EXPAND */}
                     <TableCell>
                       <IconButton
                         onClick={() =>
@@ -195,94 +206,62 @@ const ProductList = () => {
                     </TableCell>
                   </TableRow>
 
-                  {/* Expandable row for details */}
+                  {/* ✅ EXPANDABLE DETAILS ROW */}
                   <TableRow>
-                    <TableCell
-                      colSpan={12}
-                      sx={{ p: 0, borderBottom: "none" }}
-                    >
-                      <Collapse
-                        in={expandedRow === product._id}
-                        timeout="auto"
-                        unmountOnExit
-                      >
+                    <TableCell colSpan={12} sx={{ p: 0 }}>
+                      <Collapse in={expandedRow === product._id}>
                         <Box sx={{ p: 2, backgroundColor: "#f9f9f9" }}>
-                          <Typography variant="subtitle1">
-                            Specifications
-                          </Typography>
+                          
+                          {/* Specifications */}
+                          <Typography fontWeight={600}>Specifications</Typography>
                           {product.specifications?.length ? (
                             product.specifications.map((spec, idx) => (
-                              <Typography key={idx} variant="body2">
+                              <Typography key={`${spec.key}-${idx}`} variant="body2">
                                 <strong>{spec.key}:</strong> {spec.value}
                               </Typography>
                             ))
                           ) : (
-                            <Typography
-                              variant="body2"
-                              color="textSecondary"
-                            >
-                              None
-                            </Typography>
+                            <Typography variant="body2">None</Typography>
                           )}
 
-                          <Typography variant="subtitle1" sx={{ mt: 2 }}>
+                          {/* Variants */}
+                          <Typography fontWeight={600} sx={{ mt: 2 }}>
                             Variants
                           </Typography>
                           {product.variants?.length ? (
                             product.variants.map((v, idx) => (
                               <Chip
                                 key={idx}
-                                label={`${v.name || ""} ${v.color || ""} (${v.stock || 0})`}
+                                label={`${v.name || ""} ${v.color || ""} (Stock: ${v.stock || 0})`}
                                 size="small"
                                 sx={{ mr: 1, mb: 1 }}
                               />
                             ))
                           ) : (
-                            <Typography
-                              variant="body2"
-                              color="textSecondary"
-                            >
-                              None
-                            </Typography>
+                            <Typography variant="body2">None</Typography>
                           )}
 
-                          <Typography variant="subtitle1" sx={{ mt: 2 }}>
+                          {/* Attributes */}
+                          <Typography fontWeight={600} sx={{ mt: 2 }}>
                             Attributes
                           </Typography>
                           <Box>
                             {product.attributes?.finishes?.map((f) => (
-                              <Chip
-                                key={f._id}
-                                label={f.name}
-                                size="small"
-                                color="primary"
-                                sx={{ mr: 1, mb: 1 }}
-                              />
+                              <Chip key={f._id} label={f.name} size="small" color="primary" sx={{ mr: 1, mb: 1 }} />
                             ))}
                             {product.attributes?.materials?.map((m) => (
-                              <Chip
-                                key={m._id}
-                                label={m.name}
-                                size="small"
-                                color="secondary"
-                                sx={{ mr: 1, mb: 1 }}
-                              />
+                              <Chip key={m._id} label={m.name} size="small" color="secondary" sx={{ mr: 1, mb: 1 }} />
                             ))}
                             {product.attributes?.textures?.map((t) => (
-                              <Chip
-                                key={t._id}
-                                label={t.name}
-                                size="small"
-                                color="success"
-                                sx={{ mr: 1, mb: 1 }}
-                              />
+                              <Chip key={t._id} label={t.name} size="small" color="success" sx={{ mr: 1, mb: 1 }} />
                             ))}
                           </Box>
+
                         </Box>
                       </Collapse>
                     </TableCell>
                   </TableRow>
-                </>
+                </React.Fragment>
               ))
             ) : (
               <TableRow>

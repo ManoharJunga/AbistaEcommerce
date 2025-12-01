@@ -98,3 +98,14 @@ exports.getTopDemographics = async (req, res) => {
     res.status(400).json({ message: err.message });
   }
 };
+
+
+exports.getMyProfile = async (req, res) => {
+  const user = await Customer.findById(req.user.id)
+  res.json(user)
+}
+
+exports.updateMyProfile = async (req, res) => {
+  const updated = await Customer.findByIdAndUpdate(req.user.id, req.body, { new: true })
+  res.json(updated)
+}

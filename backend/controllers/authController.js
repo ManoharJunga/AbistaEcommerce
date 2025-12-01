@@ -87,4 +87,34 @@ const getProfile = async (req, res) => {
   }
 };
 
-module.exports = { signup, login, getProfile };
+// @desc Update logged in customer profile
+// @route PUT /api/auth/profile
+const updateProfile = async (req, res) => {
+  try {
+    const updates = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      phone: req.body.phone,
+      dateOfBirth: req.body.dateOfBirth,
+      addresses: req.body.addresses,
+    };
+
+    const customer = await Customer.findByIdAndUpdate(
+      req.user.id,
+      updates,
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!customer) {
+      return res.status(404).json({ message: "Customer not found" });
+    }
+
+    res.json(customer);
+  } catch (err) {
+    console.error("Update error:", err);
+    res.status(500).json({ message: "Update failed", error: err.message });
+  }
+};
+
+
+module.exports = { signup, login, getProfile, updateProfile };

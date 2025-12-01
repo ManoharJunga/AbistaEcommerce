@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const authMiddleware = require('../middleware/authMiddleware')
 
 // Controllers for customer-related actions
 const { 
@@ -9,7 +10,9 @@ const {
   getAllCustomers,
   getTotalCustomers,
   getNewCustomers,
-  getTopDemographics
+  getTopDemographics,
+  getMyProfile,
+  updateMyProfile
 } = require('../controllers/customerController');
 
 // Define customer-related routes
@@ -22,5 +25,8 @@ router.get('/', getAllCustomers); // Get all customers
 router.get('/insights/total', getTotalCustomers);  // Get total customers
 router.get('/insights/new', getNewCustomers); // Get new customers (daily, weekly, monthly)
 router.get('/insights/top-demographics', getTopDemographics); // Get top demographics (city)
+
+router.get('/me', authMiddleware, getMyProfile)
+router.put('/me', authMiddleware, updateMyProfile)
 
 module.exports = router;
